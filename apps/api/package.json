@@ -1,12 +1,18 @@
 {
   "name": "api",
   "version": "1.0.0",
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
   "scripts": {
+    "postinstall": "prisma generate",
     "start": "nest start",
+    "start:prod": "node dist/src/main.js",
     "dev": "nest start --watch",
     "build": "nest build",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:prod": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "ts-node prisma/seed.ts"
   },
