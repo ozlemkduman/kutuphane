@@ -5,11 +5,11 @@
     "schema": "prisma/schema.prisma"
   },
   "scripts": {
-    "postinstall": "prisma generate",
-    "start": "nest start",
+    "postinstall": "npx prisma generate",
+    "start": "npx nest start",
     "start:prod": "node dist/src/main.js",
-    "dev": "nest start --watch",
-    "build": "nest build",
+    "dev": "npx nest start --watch",
+    "build": "npx nest build",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:prod": "prisma migrate deploy",
