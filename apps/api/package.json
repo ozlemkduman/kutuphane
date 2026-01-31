@@ -17,6 +17,7 @@
     "db:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
+    "@nestjs/cli": "^11.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.1.12",
@@ -29,16 +30,15 @@
     "helmet": "^8.1.0",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.12",
+    "prisma": "^6.9.0",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.0"
+    "rxjs": "^7.8.0",
+    "typescript": "^5.0.0"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.0",
     "@types/multer": "^2.0.0",
     "@types/node": "^20.0.0",
     "@types/nodemailer": "^7.0.5",
-    "prisma": "^6.9.0",
-    "ts-node": "^10.9.0",
-    "typescript": "^5.0.0"
+    "ts-node": "^10.9.0"
   }
 }
