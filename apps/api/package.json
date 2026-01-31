@@ -1,0 +1,38 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "nest start",
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "ts-node prisma/seed.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.1.12",
+    "@nestjs/schedule": "^6.1.0",
+    "@nestjs/throttler": "^6.5.0",
+    "@prisma/client": "^6.9.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
+    "firebase-admin": "^13.6.0",
+    "helmet": "^8.1.0",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.12",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^20.0.0",
+    "@types/nodemailer": "^7.0.5",
+    "prisma": "^6.9.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}

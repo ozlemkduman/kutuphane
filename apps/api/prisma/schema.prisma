@@ -1,0 +1,331 @@
+// Prisma şema dosyası
+// Bu dosya veritabanı tablolarını tanımlar
+
+// Veritabanı bağlantı ayarları
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Prisma Client oluşturma ayarı
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ============================================
+// OKUL TABLOSU (Multi-Tenancy)
+// ============================================
+model School {
+  id        String   @id @default(uuid())
+  name      String                     // Okul adı
+  slug      String   @unique           // URL-friendly isim
+  logo      String?                    // Logo URL
+  address   String?                    // Adres
+  phone     String?                    // Telefon
+  email     String?                    // Email
+  isActive  Boolean  @default(true)    // Aktif mi?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // İlişkiler
+  users         User[]
+  books         Book[]
+  categories    Category[]
+  loans         Loan[]
+  reservations  Reservation[]
+  notifications Notification[]
+  reviews       Review[]
+  favorites     Favorite[]
+  settings      SchoolSettings?
+}
+
+// ============================================
+// KULLANICI TABLOSU
+// ============================================
+model User {
+  id           String     @id @default(uuid())  // Benzersiz kimlik
+  firebaseUid  String     @unique          // Firebase'den gelen ID
+  email        String     @unique          // Email (tekil olmalı)
+  name         String                      // Kullanıcı adı
+  role         Role       @default(MEMBER) // Yetki seviyesi
+  status       UserStatus @default(PENDING) // Onay durumu
+  isMainAdmin  Boolean    @default(false)  // Okulun ana admini mi?
+  createdAt    DateTime   @default(now())  // Kayıt tarihi
+  updatedAt    DateTime   @updatedAt       // Son güncelleme
+
+  // Öğrenci bilgileri (MEMBER için zorunlu)
+  className     String?                    // Sınıf (9, 10, 11, 12 vb.)
+  section       String?                    // Şube (A, B, C vb.)
+  studentNumber String?                    // Okul numarası
+
+  // Okul ilişkisi (DEVELOPER için null olabilir)
+  schoolId     String?
+  school       School?   @relation(fields: [schoolId], references: [id])
+
+  // İlişki: Bir kullanıcının birçok ödüncü olabilir
+  loans         Loan[]
+  reservations  Reservation[]
+  notifications Notification[]
+  reviews       Review[]
+  favorites     Favorite[]
+
+  // Okul içinde öğrenci numarası tekil olmalı
+  @@unique([schoolId, studentNumber])
+}
+
+// ============================================
+// KATEGORİ TABLOSU
+// ============================================
+model Category {
+  id          String    @id @default(uuid())
+  slug        String                     // URL-friendly isim (roman, matematik, vb.)
+  name        String                     // Görünen isim (Roman, Matematik, vb.)
+  icon        String                     // Emoji ikon
+  color       String                     // Renk kodu (#ef4444 gibi)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Okul ilişkisi
+  schoolId    String
+  school      School    @relation(fields: [schoolId], references: [id])
+
+  // İlişki: Bir kategoride birçok kitap olabilir
+  books       Book[]
+
+  // Her okul için slug tekil olmalı
+  @@unique([schoolId, slug])
+}
+
+// ============================================
+// KİTAP TABLOSU
+// ============================================
+model Book {
+  id          String    @id @default(uuid())
+  title       String                     // Kitap adı
+  author      String                     // Yazar
+  isbn        String?   @unique          // ISBN numarası (opsiyonel, varsa tekil)
+  description String?                    // Açıklama (? = opsiyonel)
+  coverImage  String?                    // Kapak görseli URL'i
+  quantity    Int       @default(1)      // Toplam adet
+  available   Int       @default(1)      // Mevcut adet
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Kategori ilişkisi
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+
+  // Okul ilişkisi
+  schoolId    String
+  school      School    @relation(fields: [schoolId], references: [id])
+
+  // İlişki: Bir kitabın birçok ödünç kaydı olabilir
+  loans        Loan[]
+  reservations Reservation[]
+  reviews      Review[]
+  favorites    Favorite[]
+
+  // Arama performansı için indeksler
+  @@index([schoolId, title])
+  @@index([schoolId, author])
+  @@index([schoolId, categoryId])
+  @@index([schoolId, available])
+}
+
+// ============================================
+// ÖDÜNÇ TABLOSU (User ve Book arasında köprü)
+// ============================================
+model Loan {
+  id          String     @id @default(uuid())
+  borrowedAt  DateTime   @default(now())  // Ödünç alma tarihi
+  dueDate     DateTime                    // Son iade tarihi
+  returnedAt  DateTime?                   // İade tarihi (null = henüz iade edilmedi)
+  status      LoanStatus @default(ACTIVE)
+  renewCount  Int        @default(0)      // Yenileme sayısı (max 2)
+  fineAmount  Float      @default(0)      // Ceza miktarı (TL)
+  finePaid    Boolean    @default(false)  // Ceza ödendi mi?
+
+  // İlişkiler
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+
+  bookId      String
+  book        Book       @relation(fields: [bookId], references: [id])
+
+  // Okul ilişkisi
+  schoolId    String
+  school      School     @relation(fields: [schoolId], references: [id])
+
+  // Sorgu performansı için indeksler
+  @@index([schoolId, status])
+  @@index([schoolId, dueDate])
+  @@index([userId, status])
+  @@index([bookId])
+}
+
+// ============================================
+// REZERVASYON TABLOSU
+// ============================================
+model Reservation {
+  id          String            @id @default(uuid())
+  createdAt   DateTime          @default(now())
+  expiresAt   DateTime?                          // Kitap müsait olunca ne zamana kadar geçerli
+  status      ReservationStatus @default(WAITING)
+  notifiedAt  DateTime?                          // Bildirim gönderildi mi?
+
+  // İlişkiler
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+
+  bookId      String
+  book        Book              @relation(fields: [bookId], references: [id])
+
+  // Okul ilişkisi
+  schoolId    String
+  school      School            @relation(fields: [schoolId], references: [id])
+
+  // Bir kullanıcı aynı kitabı birden fazla kez rezerve edemez
+  @@unique([userId, bookId, status])
+}
+
+// ============================================
+// BİLDİRİM TABLOSU
+// ============================================
+model Notification {
+  id          String           @id @default(uuid())
+  type        NotificationType
+  title       String
+  message     String
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  sentAt      DateTime?                          // E-posta gönderildi mi?
+
+  // İlişkiler
+  userId      String
+  user        User             @relation(fields: [userId], references: [id])
+
+  // Okul ilişkisi
+  schoolId    String
+  school      School           @relation(fields: [schoolId], references: [id])
+}
+
+// ============================================
+// İNCELEME (YORUM) TABLOSU
+// ============================================
+model Review {
+  id          String   @id @default(uuid())
+  rating      Int                          // 1-5 arası puan
+  comment     String?                      // Yorum metni (opsiyonel)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // İlişkiler
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  bookId      String
+  book        Book     @relation(fields: [bookId], references: [id])
+
+  // Okul ilişkisi
+  schoolId    String
+  school      School   @relation(fields: [schoolId], references: [id])
+
+  // Bir kullanıcı aynı kitaba sadece bir yorum yapabilir
+  @@unique([userId, bookId])
+}
+
+// ============================================
+// FAVORİLER TABLOSU
+// ============================================
+model Favorite {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  // İlişkiler
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id])
+
+  // Okul ilişkisi
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id])
+
+  // Bir kullanıcı aynı kitabı sadece bir kez favorilere ekleyebilir
+  @@unique([userId, bookId])
+}
+
+// ============================================
+// OKUL AYARLARI TABLOSU
+// ============================================
+model SchoolSettings {
+  id              String   @id @default(uuid())
+  schoolId        String   @unique
+  school          School   @relation(fields: [schoolId], references: [id])
+
+  // Ödünç ayarları
+  loanDays        Int      @default(14)    // Ödünç süresi (gün)
+  maxLoans        Int      @default(3)     // Maksimum ödünç sayısı
+  maxRenewals     Int      @default(2)     // Maksimum yenileme sayısı
+
+  // Ceza ayarları
+  finePerDay      Float    @default(1.0)   // Günlük ceza (TL)
+  maxFine         Float    @default(50.0)  // Maksimum ceza (TL)
+
+  // Rezervasyon ayarları
+  reservationDays Int      @default(3)     // Rezervasyon geçerlilik süresi (gün)
+  maxReservations Int      @default(2)     // Maksimum rezervasyon sayısı
+
+  // E-posta ayarları
+  smtpHost        String?                  // SMTP sunucu adresi
+  smtpPort        Int      @default(587)   // SMTP portu
+  smtpUser        String?                  // SMTP kullanıcı adı
+  smtpPass        String?                  // SMTP şifresi
+  fromEmail       String?                  // Gönderen e-posta adresi
+  fromName        String?                  // Gönderen adı
+  emailEnabled    Boolean  @default(false) // E-posta bildirimleri aktif mi?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// ENUM'LAR (Sabit değerler)
+// ============================================
+enum Role {
+  DEVELOPER // Tüm okulları yöneten süper admin
+  ADMIN     // Okul yöneticisi
+  MEMBER    // Üye
+}
+
+enum LoanStatus {
+  ACTIVE    // Ödünç alınmış, iade edilmemiş
+  RETURNED  // İade edilmiş
+  OVERDUE   // Süresi geçmiş
+}
+
+enum UserStatus {
+  PENDING   // Onay bekliyor
+  APPROVED  // Onaylandı
+  REJECTED  // Reddedildi
+}
+
+enum ReservationStatus {
+  WAITING   // Kitap bekleniyor
+  READY     // Kitap müsait, alınabilir
+  COMPLETED // Rezervasyon tamamlandı (kitap alındı)
+  CANCELLED // İptal edildi
+  EXPIRED   // Süresi doldu
+}
+
+enum NotificationType {
+  OVERDUE_WARNING    // Gecikme uyarısı
+  OVERDUE_REMINDER   // Gecikme hatırlatması
+  RESERVATION_READY  // Rezervasyon hazır
+  RESERVATION_EXPIRED // Rezervasyon süresi doldu
+  LOAN_DUE_SOON      // Teslim tarihi yaklaşıyor
+  FINE_NOTICE        // Ceza bildirimi
+  WEEKLY_SUMMARY     // Haftalık özet
+  GENERAL            // Genel bildirim
+}

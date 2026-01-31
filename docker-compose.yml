@@ -1,0 +1,17 @@
+services:
+  # PostgreSQL veritabanı
+  postgres:
+    image: postgres:16-alpine
+    container_name: kutuphane_db
+    environment:
+      POSTGRES_USER: kutuphane
+      POSTGRES_PASSWORD: kutuphane123
+      POSTGRES_DB: kutuphane_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+# Verilerin saklandığı yer (container silinse bile veriler kalır)
+volumes:
+  postgres_data:

@@ -1,0 +1,10 @@
+# Gizli dosyalar - asla GitHub'a yükleme!
+firebase-admin-key.json
+.env
+
+# Node
+node_modules/
+dist/
+
+# Logs
+logs/
