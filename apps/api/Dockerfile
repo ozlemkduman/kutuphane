@@ -12,7 +12,7 @@ RUN apk add --no-cache openssl
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm ci
+RUN npm install
 
 # Prisma client oluştur
 RUN npx prisma generate
@@ -30,7 +30,7 @@ RUN apk add --no-cache openssl curl
 
 # Production bağımlılıkları
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Prisma
 COPY prisma ./prisma/
