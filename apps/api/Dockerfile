@@ -30,11 +30,8 @@ RUN apk add --no-cache openssl curl
 
 # Production bağımlılıkları
 COPY package*.json ./
-RUN npm install --omit=dev
-
-# Prisma
 COPY prisma ./prisma/
-RUN npx prisma generate
+RUN npm install --omit=dev
 
 # Build çıktısını kopyala
 COPY --from=builder /app/dist ./dist
