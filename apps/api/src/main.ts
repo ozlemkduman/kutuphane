@@ -4,7 +4,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
-import { join } from 'path';
 import helmet from 'helmet';
 
 async function bootstrap() {
@@ -60,12 +59,6 @@ async function bootstrap() {
 
   // Request body boyut limiti (varsayılan 100kb yerine 1mb)
   app.useBodyParser('json', { limit: '1mb' });
-
-  // Statik dosyalar için uploads klasörünü sun
-  // Not: __dirname dist/src'yi gösterir, uploads ise api kökünde
-  app.useStaticAssets(join(__dirname, '..', '..', 'uploads'), {
-    prefix: '/uploads/',
-  });
 
   // /api prefix'i
   app.setGlobalPrefix('api');

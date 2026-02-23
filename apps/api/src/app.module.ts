@@ -10,7 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { LoansModule } from './loans/loans.module';
 import { CategoriesModule } from './categories/categories.module';
-import { UploadModule } from './upload/upload.module';
+import { HealthModule } from './health/health.module';
 import { StatsModule } from './stats/stats.module';
 import { SchoolsModule } from './schools/schools.module';
 import { AuditModule } from './audit/audit.module';
@@ -42,6 +42,7 @@ import { FavoritesModule } from './favorites/favorites.module';
         limit: 500,  // 500 istek
       },
     ]),
+    HealthModule,        // Health check
     PrismaModule,        // Veritabanı
     AuditModule,         // Audit logging
     AuthModule,          // Kimlik doğrulama
@@ -50,7 +51,6 @@ import { FavoritesModule } from './favorites/favorites.module';
     BooksModule,         // Kitaplar
     UsersModule,         // Kullanıcılar
     LoansModule,         // Ödünç işlemleri
-    UploadModule,        // Dosya yükleme
     StatsModule,         // İstatistikler ve raporlar
     ReservationsModule,  // Rezervasyonlar
     NotificationsModule, // Bildirimler

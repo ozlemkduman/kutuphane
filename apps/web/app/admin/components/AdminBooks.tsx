@@ -28,7 +28,6 @@ export function AdminBooks({ books, setBooks, categories, userInfo, selectedScho
     title: '', author: '', isbn: '', description: '', quantity: 1, categoryId: '', coverImage: '',
   });
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
   const [csvImporting, setCsvImporting] = useState(false);
   const [selectedBooks, setSelectedBooks] = useState<string[]>([]);
@@ -50,27 +49,6 @@ export function AdminBooks({ books, setBooks, categories, userInfo, selectedScho
       categoryId: book.categoryId || '', coverImage: book.coverImage || '',
     });
     setShowForm(true);
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const token = await getToken();
-      if (!token) { toast.error('Oturum hatası'); return; }
-      const formDataUpload = new FormData();
-      formDataUpload.append('file', file);
-      const headers = getHeaders(token, selectedSchoolId, userInfo?.role);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
-        method: 'POST', headers, body: formDataUpload,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setFormData({ ...formData, coverImage: `${process.env.NEXT_PUBLIC_API_URL}${data.url}` });
-      } else { toast.error('Dosya yüklenemedi'); }
-    } catch { toast.error('Dosya yükleme hatası'); }
-    finally { setUploading(false); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -265,18 +243,12 @@ export function AdminBooks({ books, setBooks, categories, userInfo, selectedScho
               />
             </div>
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: 'block', color: colors.gray, marginBottom: spacing.sm, fontSize: '14px' }}>Kapak Resmi</label>
-              <div style={{ display: 'flex', gap: spacing.md, alignItems: 'center' }}>
-                <label style={{
-                  display: 'flex', alignItems: 'center', gap: spacing.sm, padding: `${spacing.md} ${spacing.lg}`,
-                  backgroundColor: colors.bg, border: `2px dashed ${colors.border}`, borderRadius: borderRadius.md,
-                  cursor: uploading ? 'not-allowed' : 'pointer', color: colors.gray,
-                }}>
-                  <input type="file" accept="image/*" onChange={handleFileUpload} disabled={uploading} style={{ display: 'none' }} />
-                  {uploading ? '⏳ Yükleniyor...' : '📷 Fotoğraf Seç'}
-                </label>
+              <div style={{ display: 'flex', gap: spacing.md, alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <Input label="Kapak Resmi URL (opsiyonel)" type="url" value={formData.coverImage} onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })} placeholder="https://..." />
+                </div>
                 {formData.coverImage && (
-                  <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
                     <img src={formData.coverImage} alt="Önizleme" style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: borderRadius.sm }} />
                     <button type="button" onClick={() => setFormData({ ...formData, coverImage: '' })}
                       style={{ position: 'absolute', top: '-8px', right: '-8px', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: colors.error, color: 'white', border: 'none', cursor: 'pointer', fontSize: '12px' }}>×</button>

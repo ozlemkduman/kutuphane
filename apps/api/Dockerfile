@@ -12,7 +12,7 @@ RUN apk add --no-cache openssl
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm ci --only=production=false
+RUN npm ci
 
 # Prisma client oluştur
 RUN npx prisma generate
@@ -38,9 +38,6 @@ RUN npx prisma generate
 
 # Build çıktısını kopyala
 COPY --from=builder /app/dist ./dist
-
-# Uploads klasörü
-RUN mkdir -p uploads
 
 # Non-root user
 RUN addgroup -g 1001 -S nodejs && \
