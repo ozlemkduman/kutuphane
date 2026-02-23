@@ -17,6 +17,7 @@ build/
 # Firebase
 firebase-service-account.json
 *-firebase-adminsdk-*.json
+firebase-admin-key.json
 
 # IDE
 .idea/

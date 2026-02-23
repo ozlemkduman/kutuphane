@@ -9,10 +9,24 @@ const prisma = new PrismaClient();
 
 // Firebase Admin başlat
 if (!admin.apps.length) {
-  const serviceAccountPath = path.join(process.cwd(), 'firebase-admin-key.json');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccountPath),
-  });
+  if (
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_PRIVATE_KEY &&
+    process.env.FIREBASE_CLIENT_EMAIL
+  ) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      }),
+    });
+  } else {
+    const serviceAccountPath = path.join(process.cwd(), 'firebase-admin-key.json');
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccountPath),
+    });
+  }
 }
 
 async function main() {

@@ -14,7 +14,10 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:prod": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "db:seed": "ts-node prisma/seed.ts"
+    "db:seed": "ts-node prisma/seed.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
   },
   "dependencies": {
     "@nestjs/cli": "^11.0.0",
@@ -36,9 +39,13 @@
     "typescript": "^5.0.0"
   },
   "devDependencies": {
+    "@nestjs/testing": "^11.1.14",
+    "@types/jest": "^30.0.0",
     "@types/multer": "^2.0.0",
     "@types/node": "^20.0.0",
     "@types/nodemailer": "^7.0.5",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.0"
   }
 }
