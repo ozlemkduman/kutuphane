@@ -41,5 +41,8 @@ coverage/
 .turbo/
 uploads/
 
+# App bundles
+*.app/
+
 # Keep example files
 !.env.example
