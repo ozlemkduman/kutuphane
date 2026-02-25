@@ -98,13 +98,13 @@ export function AdminApprovals({ pendingUsers, setPendingUsers, userInfo, select
             <Card style={{ marginBottom: spacing.md, padding: spacing.md, backgroundColor: colors.primary + '15', borderColor: colors.primary }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: spacing.md }}>
                 <span style={{ color: colors.white, fontWeight: 500 }}>{selectedUsers.length} kullanici secildi</span>
-                <div style={{ display: 'flex', gap: spacing.sm }}>
-                  <Button size="sm" variant="outline" onClick={() => setSelectedUsers([])}>Seçimi Kaldır</Button>
+                <div style={{ display: 'flex', gap: spacing.sm, flexWrap: 'wrap' }}>
+                  <Button size="sm" variant="outline" onClick={() => setSelectedUsers([])}>Secimi Kaldir</Button>
                   <Button size="sm" style={{ backgroundColor: colors.success }} onClick={handleBulkApprove} disabled={bulkProcessing}>
-                    {bulkProcessing ? '⏳ İşleniyor...' : `✓ Tümünü Onayla (${selectedUsers.length})`}
+                    {bulkProcessing ? 'Isleniyor...' : `Onayla (${selectedUsers.length})`}
                   </Button>
                   <Button size="sm" variant="danger" onClick={handleBulkReject} disabled={bulkProcessing}>
-                    {bulkProcessing ? '⏳ İşleniyor...' : `✗ Tümünü Reddet (${selectedUsers.length})`}
+                    {bulkProcessing ? 'Isleniyor...' : `Reddet (${selectedUsers.length})`}
                   </Button>
                 </div>
               </div>

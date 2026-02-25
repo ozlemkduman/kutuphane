@@ -137,8 +137,8 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
               <p style={{ color: colors.gray, fontSize: '13px', margin: 0 }}>
                 Ogretmenlerin kayit olabilmesi icin bir kod belirleyin. Bu kodu ogretmenlerle paylasarak kayit olmalarini saglayabilirsiniz.
               </p>
-              <div style={{ display: 'flex', gap: spacing.sm, alignItems: 'flex-end' }}>
-                <div style={{ flex: 1 }}>
+              <div className="teacher-code-input-row" style={{ display: 'flex', gap: spacing.sm, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                   <label style={{ display: 'block', color: colors.gray, marginBottom: spacing.sm, fontSize: '14px' }}>Kod</label>
                   <Input
                     value={teacherCodeInput}
@@ -147,17 +147,17 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
                     style={{ fontFamily: 'monospace', letterSpacing: '2px' }}
                   />
                 </div>
-                <Button type="button" variant="outline" onClick={generateRandomCode} style={{ whiteSpace: 'nowrap' }}>
+                <Button type="button" variant="outline" onClick={generateRandomCode} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
                   Rastgele Olustur
                 </Button>
               </div>
               {teacherCode && (
-                <div style={{ padding: spacing.md, backgroundColor: colors.bg, borderRadius: '8px', display: 'flex', alignItems: 'center', gap: spacing.md }}>
+                <div style={{ padding: spacing.md, backgroundColor: colors.bg, borderRadius: '8px', display: 'flex', alignItems: 'center', gap: spacing.md, flexWrap: 'wrap' }}>
                   <span style={{ color: colors.gray, fontSize: '13px' }}>Mevcut kod:</span>
-                  <code style={{ color: colors.primaryLight, fontWeight: 600, letterSpacing: '2px', fontSize: '16px' }}>{teacherCode}</code>
+                  <code style={{ color: colors.primaryLight, fontWeight: 600, letterSpacing: '2px', fontSize: '16px', wordBreak: 'break-all' }}>{teacherCode}</code>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: spacing.sm }}>
+              <div style={{ display: 'flex', gap: spacing.sm, flexWrap: 'wrap' }}>
                 <Button type="button" onClick={handleSaveTeacherCode} disabled={teacherCodeSaving}>
                   {teacherCodeSaving ? 'Kaydediliyor...' : 'Kodu Kaydet'}
                 </Button>
@@ -173,7 +173,7 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
       </Card>
 
       <form onSubmit={handleSave}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: spacing.xl }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(350px, 100%), 1fr))', gap: spacing.xl }}>
           {/* Ödünç Alma Ayarları */}
           <Card>
             <Card.Header><Card.Title>📚 Ödünç Alma Ayarları</Card.Title></Card.Header>
@@ -237,7 +237,7 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
           </Card>
         </div>
 
-        <div style={{ marginTop: spacing.xl, display: 'flex', gap: spacing.md }}>
+        <div style={{ marginTop: spacing.xl, display: 'flex', gap: spacing.md, flexWrap: 'wrap' }}>
           <Button type="submit" disabled={saving}>{saving ? '⏳ Kaydediliyor...' : '💾 Ayarları Kaydet'}</Button>
           {schoolSettings && (
             <Button type="button" variant="outline" onClick={() => setForm({
