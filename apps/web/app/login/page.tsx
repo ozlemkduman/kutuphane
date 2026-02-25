@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -60,39 +60,29 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already logged in
+  // Redirect if already logged in (veya mobil Google redirect sonrasi)
   useEffect(() => {
-    // Auth yüklenene kadar bekle
     if (authLoading) return;
 
     if (user && profile) {
-      // MEMBER'lar icin durum kontrolu
-      if (profile.role === 'MEMBER') {
-        // Reddedilmis kullanicilar - cikis yaptir, login sayfasinda kalsin
+      localStorage.removeItem('googleLoginPending');
+      if (profile.role === 'MEMBER' || profile.role === 'TEACHER') {
         if (profile.status === 'REJECTED') {
           auth.signOut();
           return;
         }
-        // Onay bekleyenler - pending sayfasina
-        if (profile.status === 'PENDING') {
-          router.replace('/pending-approval');
-          return;
-        }
-        // Okul secimi gerekiyor
-        if (!profile.schoolId) {
-          router.replace('/onboarding/select-school');
-          return;
-        }
+        if (profile.status === 'PENDING') { router.replace('/pending-approval'); return; }
+        if (!profile.schoolId) { router.replace('/onboarding/select-school'); return; }
       }
-
-      // DEVELOPER ise developer sayfasina
-      if (profile.role === 'DEVELOPER') {
-        router.replace('/developer');
-        return;
-      }
-
-      // Diger durumlarda books'a yonlendir
+      if (profile.role === 'DEVELOPER') { router.replace('/developer'); return; }
       router.replace('/books');
+    }
+
+    // Mobil Google redirect sonrasi: Firebase user var ama backend'de kayitli degil
+    if (user && !profile && localStorage.getItem('googleLoginPending')) {
+      localStorage.removeItem('googleLoginPending');
+      auth.signOut();
+      setError('Bu Google hesabi ile kayitli bir kullanici bulunamadi. Lutfen once kayit olun.');
     }
   }, [authLoading, user, profile, router]);
 
@@ -156,8 +146,18 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const provider = new GoogleAuthProvider();
+
+    if (isMobile) {
+      // Mobilde redirect kullan - AuthContext onAuthStateChanged ile handle edecek
+      // Login sayfasindaki useEffect (user && profile) otomatik yonlendirecek
+      localStorage.setItem('googleLoginPending', 'true');
+      await signInWithRedirect(auth, provider);
+      return;
+    }
+
     try {
-      const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const token = await result.user.getIdToken();
 
