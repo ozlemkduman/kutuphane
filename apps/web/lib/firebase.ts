@@ -1,7 +1,7 @@
 // Firebase yapılandırması
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, initializeAuth, browserLocalPersistence, browserPopupRedirectResolver, type Auth } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,16 +12,5 @@ const firebaseConfig = {
 // Firebase'i sadece bir kez başlat
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Auth servisini mobil uyumlu şekilde başlat
-let auth: Auth;
-try {
-  auth = initializeAuth(app, {
-    persistence: browserLocalPersistence,
-    popupRedirectResolver: browserPopupRedirectResolver,
-  });
-} catch {
-  // Zaten başlatılmışsa mevcut instance'ı al
-  auth = getAuth(app);
-}
-
-export { auth };
+// Auth servisini dışa aktar
+export const auth = getAuth(app);
