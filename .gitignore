@@ -46,3 +46,4 @@ uploads/
 
 # Keep example files
 !.env.example
+.vercel

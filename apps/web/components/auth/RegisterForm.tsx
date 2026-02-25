@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -117,8 +117,6 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
   const [schoolsLoading, setSchoolsLoading] = useState(true);
 
   const passwordStrength = getPasswordStrength(password);
-
-  const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   // Google redirect sonucunu isle
   useEffect(() => {
@@ -392,38 +390,22 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
     try {
       const provider = new GoogleAuthProvider();
 
-      if (isMobile) {
-        // Mobilde redirect kullan - form bilgilerini localStorage'a kaydet
-        localStorage.setItem('googleRegisterData', JSON.stringify({
-          schoolSlug: selectedSchool?.slug,
-          userType,
-          teacherCode: teacherCode.trim(),
-          className: className.trim(),
-          section: section.trim().toUpperCase(),
-          studentNumber: studentNumber.trim(),
-        }));
-        await signInWithRedirect(auth, provider);
-        return;
-      }
-
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-
-      await registerUser(
-        token,
-        result.user.displayName || name || 'Isimsiz',
-        result.user.email || ''
-      );
-
-      toast.success('Kayit basarili! Onay bekleniyor...');
-      router.push('/pending-approval');
+      // Form bilgilerini localStorage'a kaydet (redirect sonrasi kullanilacak)
+      localStorage.setItem('googleRegisterData', JSON.stringify({
+        schoolSlug: selectedSchool?.slug,
+        userType,
+        teacherCode: teacherCode.trim(),
+        className: className.trim(),
+        section: section.trim().toUpperCase(),
+        studentNumber: studentNumber.trim(),
+      }));
+      await signInWithRedirect(auth, provider);
     } catch (err: any) {
       if (err.code) {
         toast.error(getErrorMessage(err.code));
       } else {
         toast.error(err.message || 'Kayit yapilirken bir hata olustu');
       }
-    } finally {
       setLoading(false);
     }
   };

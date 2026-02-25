@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -60,9 +60,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-  // Google redirect sonucunu isle (mobil icin)
+  // Google redirect sonucunu isle
   useEffect(() => {
     const handleRedirectResult = async () => {
       try {
@@ -203,58 +201,7 @@ export default function LoginPage() {
 
     try {
       const provider = new GoogleAuthProvider();
-
-      if (isMobile) {
-        await signInWithRedirect(auth, provider);
-        return;
-      }
-
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-
-      // Kullanicinin kayitli olup olmadigini kontrol et
-      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (userRes.ok) {
-        const userData = await userRes.json();
-
-        // MEMBER'lar icin durum kontrolu
-        if (userData.role === 'MEMBER') {
-          // Reddedilmis kullanicilar giris yapamasin
-          if (userData.status === 'REJECTED') {
-            await auth.signOut();
-            setError('Basvurunuz okul yoneticiniz tarafindan reddedildi. Detaylar icin okul yoneticinizle iletisime gecin.');
-            return;
-          }
-          // Onay bekleyenler pending sayfasina
-          if (userData.status === 'PENDING') {
-            router.push('/pending-approval');
-            return;
-          }
-          if (!userData.schoolId) {
-            // Eski kullanicilar icin - okul secimi gerekiyor
-            router.push('/onboarding/select-school');
-            return;
-          }
-        }
-
-        // DEVELOPER ise developer sayfasina
-        if (userData.role === 'DEVELOPER') {
-          router.push('/developer');
-          return;
-        }
-
-        router.push('/books');
-      } else if (userRes.status === 404) {
-        // Kayitli degil - Firebase'den cikis yap ve kayit sayfasina yonlendir
-        await auth.signOut();
-        setError('Bu Google hesabi ile kayitli bir kullanici bulunamadi. Lutfen once kayit olun.');
-      } else {
-        await auth.signOut();
-        setError('Giris yapilamadi. Lutfen tekrar deneyin.');
-      }
+      await signInWithRedirect(auth, provider);
     } catch (err: any) {
       setError(getErrorMessage(err.code));
     } finally {
