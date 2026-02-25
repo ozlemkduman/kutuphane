@@ -204,7 +204,6 @@ p {
   select,
   textarea {
     font-size: 16px !important; /* Prevents iOS zoom on focus */
-    padding: 12px 14px !important;
   }
 
   /* Better spacing on mobile */
