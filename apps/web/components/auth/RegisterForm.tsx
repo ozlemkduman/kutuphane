@@ -515,7 +515,9 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
               disabled={schoolsLoading || !!schoolSlug}
               style={{
                 width: '100%',
-                padding: `${spacing.md} ${spacing.md} ${spacing.md} 44px`,
+                padding: `${spacing.md} ${spacing.md} ${spacing.md} 46px`,
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
                 backgroundColor: colors.bg,
                 border: `1px solid ${colors.border}`,
                 borderRadius: borderRadius.md,
@@ -605,8 +607,8 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
               </>
             ) : (
               <>
-                <div style={{ display: 'flex', gap: spacing.md }}>
-                  <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', gap: spacing.md, flexWrap: 'wrap' }}>
+                  <div style={{ flex: '1 1 140px', minWidth: 0 }}>
                     <Input
                       type="text"
                       label="Sinif *"
@@ -617,7 +619,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
                       required
                     />
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: '1 1 140px', minWidth: 0 }}>
                     <Input
                       type="text"
                       label="Sube *"

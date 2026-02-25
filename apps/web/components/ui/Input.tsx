@@ -89,12 +89,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       transition: `all ${transitions.normal}`,
       opacity: disabled ? 0.6 : 1,
       cursor: disabled ? 'not-allowed' : 'text',
-      paddingLeft: actualLeftIcon ? '44px' : sizeStyles[size].paddingHorizontal,
-      paddingRight: rightIcon ? '44px' : sizeStyles[size].paddingHorizontal,
+      paddingLeft: actualLeftIcon ? '46px' : sizeStyles[size].paddingHorizontal,
+      paddingRight: rightIcon ? '46px' : sizeStyles[size].paddingHorizontal,
       paddingTop: sizeStyles[size].paddingVertical,
       paddingBottom: sizeStyles[size].paddingVertical,
       fontSize: sizeStyles[size].fontSize,
       boxSizing: 'border-box',
+      WebkitAppearance: 'none',
+      MozAppearance: 'none',
+      appearance: 'none',
       ...style,
     };
 
