@@ -26,17 +26,15 @@ interface NavItem {
 }
 
 // Role-based navigation items
-const getNavItems = (role: 'DEVELOPER' | 'ADMIN' | 'MEMBER' | null): NavItem[] => {
+const getNavItems = (role: 'DEVELOPER' | 'ADMIN' | 'TEACHER' | 'MEMBER' | null): NavItem[] => {
   if (!role) return [];
 
   switch (role) {
     case 'DEVELOPER':
-      // Developer only sees developer panel
       return [
         { label: 'Geliştirici Paneli', href: '/developer', icon: '🔧' },
       ];
     case 'ADMIN':
-      // Admin sees books, favorites, my loans, admin panel, profile
       return [
         { label: 'Kitaplar', href: '/books', icon: '📚' },
         { label: 'Favorilerim', href: '/favorites', icon: '❤️' },
@@ -44,9 +42,15 @@ const getNavItems = (role: 'DEVELOPER' | 'ADMIN' | 'MEMBER' | null): NavItem[] =
         { label: 'Yönetim Paneli', href: '/admin', icon: '⚙️' },
         { label: 'Profilim', href: '/profile', icon: '👤' },
       ];
+    case 'TEACHER':
+      return [
+        { label: 'Kitaplar', href: '/books', icon: '📚' },
+        { label: 'Favorilerim', href: '/favorites', icon: '❤️' },
+        { label: 'Okuma Geçmişim', href: '/my-loans', icon: '📖' },
+        { label: 'Profilim', href: '/profile', icon: '👤' },
+      ];
     case 'MEMBER':
     default:
-      // Member sees books, favorites, my loans, profile
       return [
         { label: 'Kitaplar', href: '/books', icon: '📚' },
         { label: 'Favorilerim', href: '/favorites', icon: '❤️' },
@@ -57,12 +61,14 @@ const getNavItems = (role: 'DEVELOPER' | 'ADMIN' | 'MEMBER' | null): NavItem[] =
 };
 
 // Role badge config
-const getRoleBadge = (role: 'DEVELOPER' | 'ADMIN' | 'MEMBER') => {
+const getRoleBadge = (role: 'DEVELOPER' | 'ADMIN' | 'TEACHER' | 'MEMBER') => {
   switch (role) {
     case 'DEVELOPER':
       return { label: 'Geliştirici', variant: 'developer' as const };
     case 'ADMIN':
       return { label: 'Yönetici', variant: 'admin' as const };
+    case 'TEACHER':
+      return { label: 'Öğretmen', variant: 'info' as const };
     case 'MEMBER':
     default:
       return { label: 'Üye', variant: 'member' as const };

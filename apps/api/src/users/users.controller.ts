@@ -110,16 +110,34 @@ export class UsersController {
       throw new BadRequestException('Bu okul aktif değil');
     }
 
-    // Aynı okulda aynı öğrenci numarası var mı kontrol et (REJECTED hariç)
-    const existingStudent = await this.prisma.user.findFirst({
-      where: {
-        schoolId: school.id,
-        studentNumber: data.studentNumber,
-        status: { not: 'REJECTED' },
-      },
-    });
-    if (existingStudent) {
-      throw new BadRequestException('Bu okul numarası zaten kayıtlı');
+    let role: 'MEMBER' | 'TEACHER' = 'MEMBER';
+
+    if (data.teacherCode) {
+      // Öğretmen kaydı
+      if (!school.teacherCode) {
+        throw new BadRequestException('Bu okul için öğretmen kaydı aktif değil');
+      }
+      if (data.teacherCode !== school.teacherCode) {
+        throw new BadRequestException('Geçersiz öğretmen kodu');
+      }
+      role = 'TEACHER';
+    } else {
+      // Öğrenci kaydı - alanlar zorunlu
+      if (!data.className || !data.section || !data.studentNumber) {
+        throw new BadRequestException('Öğrenci bilgileri zorunludur');
+      }
+
+      // Aynı okulda aynı öğrenci numarası var mı kontrol et (REJECTED hariç)
+      const existingStudent = await this.prisma.user.findFirst({
+        where: {
+          schoolId: school.id,
+          studentNumber: data.studentNumber,
+          status: { not: 'REJECTED' },
+        },
+      });
+      if (existingStudent) {
+        throw new BadRequestException('Bu okul numarası zaten kayıtlı');
+      }
     }
 
     // Yeni kullanıcı oluştur (status: PENDING)
@@ -128,9 +146,10 @@ export class UsersController {
       email: data.email,
       name: data.name,
       schoolId: school.id,
-      className: data.className,
-      section: data.section,
-      studentNumber: data.studentNumber,
+      role,
+      className: role === 'TEACHER' ? null : data.className!,
+      section: role === 'TEACHER' ? null : data.section!,
+      studentNumber: role === 'TEACHER' ? null : data.studentNumber!,
     });
 
     // Audit log
@@ -141,9 +160,12 @@ export class UsersController {
       details: {
         name: data.name,
         schoolName: school.name,
-        className: data.className,
-        section: data.section,
-        studentNumber: data.studentNumber,
+        role,
+        ...(role === 'MEMBER' ? {
+          className: data.className,
+          section: data.section,
+          studentNumber: data.studentNumber,
+        } : {}),
       },
       ip: req.ip,
       userAgent: req.headers['user-agent'],
@@ -246,13 +268,14 @@ export class UsersController {
       where: {
         schoolId,
         status: 'PENDING',
-        role: 'MEMBER',
+        role: { in: ['MEMBER', 'TEACHER'] },
       },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
         name: true,
         email: true,
+        role: true,
         className: true,
         section: true,
         studentNumber: true,

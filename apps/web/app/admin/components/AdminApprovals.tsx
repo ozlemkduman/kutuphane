@@ -86,7 +86,7 @@ export function AdminApprovals({ pendingUsers, setPendingUsers, userInfo, select
 
   return (
     <div>
-      <h2 style={{ color: colors.white, fontSize: '24px', marginBottom: spacing.xl }}>Onay Bekleyen Ogrenciler</h2>
+      <h2 style={{ color: colors.white, fontSize: '24px', marginBottom: spacing.xl }}>Onay Bekleyen Kullanicilar</h2>
       {pendingUsers.length === 0 ? (
         <Card style={{ padding: spacing['3xl'], textAlign: 'center' }}>
           <span style={{ fontSize: '48px' }}>✓</span>
@@ -97,7 +97,7 @@ export function AdminApprovals({ pendingUsers, setPendingUsers, userInfo, select
           {selectedUsers.length > 0 && (
             <Card style={{ marginBottom: spacing.md, padding: spacing.md, backgroundColor: colors.primary + '15', borderColor: colors.primary }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: spacing.md }}>
-                <span style={{ color: colors.white, fontWeight: 500 }}>{selectedUsers.length} öğrenci seçildi</span>
+                <span style={{ color: colors.white, fontWeight: 500 }}>{selectedUsers.length} kullanici secildi</span>
                 <div style={{ display: 'flex', gap: spacing.sm }}>
                   <Button size="sm" variant="outline" onClick={() => setSelectedUsers([])}>Seçimi Kaldır</Button>
                   <Button size="sm" style={{ backgroundColor: colors.success }} onClick={handleBulkApprove} disabled={bulkProcessing}>
@@ -120,7 +120,7 @@ export function AdminApprovals({ pendingUsers, setPendingUsers, userInfo, select
                         onChange={(e) => { if (e.target.checked) { setSelectedUsers(pendingUsers.map((u) => u.id)); } else { setSelectedUsers([]); } }}
                         style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: colors.primary }} aria-label="Tümünü seç" />
                     </th>
-                    <th style={{ padding: spacing.lg, textAlign: 'left', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Ogrenci</th>
+                    <th style={{ padding: spacing.lg, textAlign: 'left', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Kullanici</th>
                     <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Sinif</th>
                     <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Okul No</th>
                     <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Basvuru Tarihi</th>
@@ -136,13 +136,24 @@ export function AdminApprovals({ pendingUsers, setPendingUsers, userInfo, select
                           style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: colors.primary }} aria-label={`${user.name} seç`} />
                       </td>
                       <td style={{ padding: spacing.lg }}>
-                        <p style={{ color: colors.white, fontWeight: 600, fontSize: '14px', margin: 0 }}>{user.name}</p>
-                        <p style={{ color: colors.gray, fontSize: '12px', margin: 0 }}>{user.email}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
+                          <div>
+                            <p style={{ color: colors.white, fontWeight: 600, fontSize: '14px', margin: 0 }}>{user.name}</p>
+                            <p style={{ color: colors.gray, fontSize: '12px', margin: 0 }}>{user.email}</p>
+                          </div>
+                          {user.role === 'TEACHER' && <Badge variant="info">Ogretmen</Badge>}
+                        </div>
                       </td>
                       <td style={{ padding: spacing.lg, textAlign: 'center' }}>
-                        <Badge variant="warning">{user.className}-{user.section}</Badge>
+                        {user.role === 'TEACHER' ? (
+                          <span style={{ color: colors.gray }}>-</span>
+                        ) : (
+                          <Badge variant="warning">{user.className}-{user.section}</Badge>
+                        )}
                       </td>
-                      <td style={{ padding: spacing.lg, textAlign: 'center', color: colors.white, fontWeight: 600 }}>{user.studentNumber || '-'}</td>
+                      <td style={{ padding: spacing.lg, textAlign: 'center', color: colors.white, fontWeight: 600 }}>
+                        {user.role === 'TEACHER' ? '-' : (user.studentNumber || '-')}
+                      </td>
                       <td style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontSize: '12px' }}>{formatDate(user.createdAt)}</td>
                       <td style={{ padding: spacing.lg, textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: spacing.sm, justifyContent: 'flex-end' }}>

@@ -23,9 +23,10 @@ model School {
   address   String?                    // Adres
   phone     String?                    // Telefon
   email     String?                    // Email
-  isActive  Boolean  @default(true)    // Aktif mi?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isActive    Boolean  @default(true)    // Aktif mi?
+  teacherCode String?                    // Ogretmen kayit kodu
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // İlişkiler
   users         User[]
@@ -296,7 +297,8 @@ model SchoolSettings {
 enum Role {
   DEVELOPER // Tüm okulları yöneten süper admin
   ADMIN     // Okul yöneticisi
-  MEMBER    // Üye
+  TEACHER   // Öğretmen
+  MEMBER    // Üye (öğrenci)
 }
 
 enum LoanStatus {

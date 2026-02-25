@@ -37,24 +37,34 @@ export class RegisterUserDto {
   @MaxLength(50, { message: 'Okul slug en fazla 50 karakter olabilir' })
   schoolSlug!: string;
 
-  // Öğrenci bilgileri (zorunlu)
+  // Öğretmen kayıt kodu (opsiyonel - sadece öğretmen kaydı için)
+  @IsOptional()
+  @IsString({ message: 'Öğretmen kodu metin olmalıdır' })
+  @MaxLength(50, { message: 'Öğretmen kodu en fazla 50 karakter olabilir' })
+  @Transform(({ value }) => sanitizeString(value))
+  teacherCode?: string;
+
+  // Öğrenci bilgileri (öğretmen kaydında opsiyonel)
+  @IsOptional()
   @IsString({ message: 'Sınıf metin olmalıdır' })
   @MinLength(1, { message: 'Sınıf boş olamaz' })
   @MaxLength(10, { message: 'Sınıf en fazla 10 karakter olabilir' })
   @Transform(({ value }) => sanitizeString(value))
-  className!: string;
+  className?: string;
 
+  @IsOptional()
   @IsString({ message: 'Şube metin olmalıdır' })
   @MinLength(1, { message: 'Şube boş olamaz' })
   @MaxLength(10, { message: 'Şube en fazla 10 karakter olabilir' })
   @Transform(({ value }) => sanitizeString(value)?.toUpperCase())
-  section!: string;
+  section?: string;
 
+  @IsOptional()
   @IsString({ message: 'Okul numarası metin olmalıdır' })
   @MinLength(1, { message: 'Okul numarası boş olamaz' })
   @MaxLength(20, { message: 'Okul numarası en fazla 20 karakter olabilir' })
   @Matches(/^[0-9]+$/, { message: 'Okul numarası sadece rakam içermelidir' })
-  studentNumber!: string;
+  studentNumber?: string;
 }
 
 export class SelectSchoolDto {

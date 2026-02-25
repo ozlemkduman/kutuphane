@@ -7,23 +7,24 @@ import { PrismaService } from '../prisma/prisma.service';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  // Yeni kullanıcı oluştur - öğrenci bilgileri ile
+  // Yeni kullanıcı oluştur
   async create(data: {
     firebaseUid: string;
     email: string;
     name: string;
     schoolId: string;
-    className: string;
-    section: string;
-    studentNumber: string;
+    role: 'MEMBER' | 'TEACHER';
+    className: string | null;
+    section: string | null;
+    studentNumber: string | null;
   }) {
     return this.prisma.user.create({
       data: {
         firebaseUid: data.firebaseUid,
         email: data.email,
         name: data.name,
-        role: 'MEMBER',
-        status: 'PENDING', // Okul admini onaylayacak
+        role: data.role,
+        status: 'PENDING',
         schoolId: data.schoolId,
         className: data.className,
         section: data.section,

@@ -110,6 +110,8 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
   const [className, setClassName] = useState('');
   const [section, setSection] = useState('');
   const [studentNumber, setStudentNumber] = useState('');
+  const [userType, setUserType] = useState<'student' | 'teacher'>('student');
+  const [teacherCode, setTeacherCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [schools, setSchools] = useState<School[]>([]);
   const [schoolsLoading, setSchoolsLoading] = useState(true);
@@ -150,9 +152,13 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
     // Okul seciliyse okul bilgilerini ekle
     if (selectedSchool) {
       body.schoolSlug = selectedSchool.slug;
-      body.className = className.trim();
-      body.section = section.trim().toUpperCase();
-      body.studentNumber = studentNumber.trim();
+      if (userType === 'teacher') {
+        body.teacherCode = teacherCode.trim();
+      } else {
+        body.className = className.trim();
+        body.section = section.trim().toUpperCase();
+        body.studentNumber = studentNumber.trim();
+      }
     }
 
     const registerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/register`, {
@@ -193,24 +199,31 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
       return false;
     }
 
-    if (!className.trim()) {
-      toast.error('Sinif bilgisi zorunludur');
-      return false;
-    }
+    if (userType === 'teacher') {
+      if (!teacherCode.trim()) {
+        toast.error('Ogretmen kodu zorunludur');
+        return false;
+      }
+    } else {
+      if (!className.trim()) {
+        toast.error('Sinif bilgisi zorunludur');
+        return false;
+      }
 
-    if (!section.trim()) {
-      toast.error('Sube bilgisi zorunludur');
-      return false;
-    }
+      if (!section.trim()) {
+        toast.error('Sube bilgisi zorunludur');
+        return false;
+      }
 
-    if (!studentNumber.trim()) {
-      toast.error('Okul numarasi zorunludur');
-      return false;
-    }
+      if (!studentNumber.trim()) {
+        toast.error('Okul numarasi zorunludur');
+        return false;
+      }
 
-    if (!/^[0-9]+$/.test(studentNumber.trim())) {
-      toast.error('Okul numarasi sadece rakam icermelidir');
-      return false;
+      if (!/^[0-9]+$/.test(studentNumber.trim())) {
+        toast.error('Okul numarasi sadece rakam icermelidir');
+        return false;
+      }
     }
 
     return true;
@@ -297,14 +310,21 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
       return;
     }
 
-    if (!className.trim() || !section.trim() || !studentNumber.trim()) {
-      toast.error('Lutfen tum ogrenci bilgilerini doldurun');
-      return;
-    }
+    if (userType === 'teacher') {
+      if (!teacherCode.trim()) {
+        toast.error('Ogretmen kodu zorunludur');
+        return;
+      }
+    } else {
+      if (!className.trim() || !section.trim() || !studentNumber.trim()) {
+        toast.error('Lutfen tum ogrenci bilgilerini doldurun');
+        return;
+      }
 
-    if (!/^[0-9]+$/.test(studentNumber.trim())) {
-      toast.error('Okul numarasi sadece rakam icermelidir');
-      return;
+      if (!/^[0-9]+$/.test(studentNumber.trim())) {
+        toast.error('Okul numarasi sadece rakam icermelidir');
+        return;
+      }
     }
 
     setLoading(true);
@@ -521,43 +541,106 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
           </div>
         </div>
 
-        {/* Ogrenci Bilgileri - Okul secildiyse goster */}
+        {/* Kullanıcı Tipi ve Bilgileri - Okul secildiyse goster */}
         {selectedSchoolId && (
           <>
-            <div style={{ display: 'flex', gap: spacing.md }}>
-              <div style={{ flex: 1 }}>
-                <Input
-                  type="text"
-                  label="Sinif *"
-                  value={className}
-                  onChange={(e) => setClassName(e.target.value)}
-                  placeholder="9, 10, 11..."
-                  leftIcon={<SchoolIcon />}
-                  required
-                />
-              </div>
-              <div style={{ flex: 1 }}>
-                <Input
-                  type="text"
-                  label="Sube *"
-                  value={section}
-                  onChange={(e) => setSection(e.target.value)}
-                  placeholder="A, B, C..."
-                  leftIcon={<SchoolIcon />}
-                  required
-                />
+            {/* Öğrenci / Öğretmen Toggle */}
+            <div style={{ marginBottom: spacing.lg }}>
+              <label style={{ display: 'block', color: colors.gray, fontSize: '14px', marginBottom: spacing.sm, fontWeight: 500 }}>
+                Kayit Turu *
+              </label>
+              <div style={{ display: 'flex', gap: '0', borderRadius: borderRadius.md, overflow: 'hidden', border: `1px solid ${colors.border}` }}>
+                <button
+                  type="button"
+                  onClick={() => setUserType('student')}
+                  style={{
+                    flex: 1,
+                    padding: `${spacing.md} ${spacing.lg}`,
+                    backgroundColor: userType === 'student' ? colors.primary : colors.bg,
+                    color: userType === 'student' ? colors.white : colors.gray,
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    transition: `all ${transitions.fast}`,
+                  }}
+                >
+                  Ogrenci
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUserType('teacher')}
+                  style={{
+                    flex: 1,
+                    padding: `${spacing.md} ${spacing.lg}`,
+                    backgroundColor: userType === 'teacher' ? colors.primary : colors.bg,
+                    color: userType === 'teacher' ? colors.white : colors.gray,
+                    border: 'none',
+                    borderLeft: `1px solid ${colors.border}`,
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    transition: `all ${transitions.fast}`,
+                  }}
+                >
+                  Ogretmen
+                </button>
               </div>
             </div>
 
-            <Input
-              type="text"
-              label="Okul Numarasi *"
-              value={studentNumber}
-              onChange={(e) => setStudentNumber(e.target.value)}
-              placeholder="12345"
-              leftIcon={<NumberIcon />}
-              required
-            />
+            {userType === 'teacher' ? (
+              <>
+                <Input
+                  type="text"
+                  label="Ogretmen Kodu *"
+                  value={teacherCode}
+                  onChange={(e) => setTeacherCode(e.target.value.toUpperCase())}
+                  placeholder="Okul yoneticinizden alin"
+                  leftIcon={<LockIcon />}
+                  required
+                />
+                <p style={{ color: colors.gray, fontSize: '12px', marginTop: `-${spacing.sm}`, marginBottom: spacing.md }}>
+                  Ogretmen kayit kodunu okul yoneticinizden temin edebilirsiniz.
+                </p>
+              </>
+            ) : (
+              <>
+                <div style={{ display: 'flex', gap: spacing.md }}>
+                  <div style={{ flex: 1 }}>
+                    <Input
+                      type="text"
+                      label="Sinif *"
+                      value={className}
+                      onChange={(e) => setClassName(e.target.value)}
+                      placeholder="9, 10, 11..."
+                      leftIcon={<SchoolIcon />}
+                      required
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <Input
+                      type="text"
+                      label="Sube *"
+                      value={section}
+                      onChange={(e) => setSection(e.target.value)}
+                      placeholder="A, B, C..."
+                      leftIcon={<SchoolIcon />}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <Input
+                  type="text"
+                  label="Okul Numarasi *"
+                  value={studentNumber}
+                  onChange={(e) => setStudentNumber(e.target.value)}
+                  placeholder="12345"
+                  leftIcon={<NumberIcon />}
+                  required
+                />
+              </>
+            )}
           </>
         )}
 

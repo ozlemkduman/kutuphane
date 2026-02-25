@@ -24,7 +24,7 @@ export interface UserInfo {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'MEMBER' | 'DEVELOPER';
+  role: 'ADMIN' | 'MEMBER' | 'TEACHER' | 'DEVELOPER';
   schoolId: string | null;
 }
 
@@ -32,7 +32,7 @@ export interface Member {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'MEMBER';
+  role: 'ADMIN' | 'MEMBER' | 'TEACHER';
   createdAt: string;
   totalLoans: number;
   activeLoans: number;
@@ -119,7 +119,7 @@ export interface NeverBorrowedMember {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'MEMBER';
+  role: 'ADMIN' | 'MEMBER' | 'TEACHER';
   createdAt: string;
 }
 
@@ -127,6 +127,7 @@ export interface PendingUser {
   id: string;
   name: string;
   email: string;
+  role?: 'MEMBER' | 'TEACHER';
   className: string | null;
   section: string | null;
   studentNumber: string | null;

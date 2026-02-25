@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
 import { colors, spacing } from '@/lib/theme';
-import { getJsonHeaders } from './utils';
+import { getHeaders, getJsonHeaders } from './utils';
 import { SchoolSettings, UserInfo } from './types';
 
 interface AdminSettingsProps {
@@ -28,7 +28,78 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
     maxReservations: schoolSettings?.maxReservations ?? 2,
   });
   const [saving, setSaving] = useState(false);
+  const [teacherCode, setTeacherCode] = useState<string | null>(null);
+  const [teacherCodeInput, setTeacherCodeInput] = useState('');
+  const [teacherCodeLoading, setTeacherCodeLoading] = useState(true);
+  const [teacherCodeSaving, setTeacherCodeSaving] = useState(false);
   const toast = useToast();
+
+  // Öğretmen kodunu yükle
+  useEffect(() => {
+    const fetchTeacherCode = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const headers = getHeaders(token, selectedSchoolId, userInfo?.role);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schools/my/teacher-code`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          setTeacherCode(data.teacherCode);
+          setTeacherCodeInput(data.teacherCode || '');
+        }
+      } catch { /* ignore */ }
+      finally { setTeacherCodeLoading(false); }
+    };
+    fetchTeacherCode();
+  }, [getToken, selectedSchoolId, userInfo?.role]);
+
+  const generateRandomCode = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    setTeacherCodeInput(code);
+  };
+
+  const handleSaveTeacherCode = async () => {
+    setTeacherCodeSaving(true);
+    try {
+      const token = await getToken();
+      if (!token) { toast.error('Oturum hatasi'); return; }
+      const headers = getJsonHeaders(token, selectedSchoolId, userInfo?.role);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schools/my/teacher-code`, {
+        method: 'PUT', headers, body: JSON.stringify({ teacherCode: teacherCodeInput.trim() || null }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTeacherCode(data.teacherCode);
+        setTeacherCodeInput(data.teacherCode || '');
+        toast.success(data.teacherCode ? 'Ogretmen kodu kaydedildi' : 'Ogretmen kodu kaldirildi');
+      } else {
+        const error = await res.json();
+        toast.error(error.message || 'Kaydetme basarisiz');
+      }
+    } catch { toast.error('Bir hata olustu'); }
+    finally { setTeacherCodeSaving(false); }
+  };
+
+  const handleRemoveTeacherCode = async () => {
+    setTeacherCodeInput('');
+    setTeacherCodeSaving(true);
+    try {
+      const token = await getToken();
+      if (!token) { toast.error('Oturum hatasi'); return; }
+      const headers = getJsonHeaders(token, selectedSchoolId, userInfo?.role);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schools/my/teacher-code`, {
+        method: 'PUT', headers, body: JSON.stringify({ teacherCode: null }),
+      });
+      if (res.ok) {
+        setTeacherCode(null);
+        setTeacherCodeInput('');
+        toast.success('Ogretmen kodu kaldirildi');
+      } else { toast.error('Islem basarisiz'); }
+    } catch { toast.error('Bir hata olustu'); }
+    finally { setTeacherCodeSaving(false); }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +126,52 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
   return (
     <div>
       <h2 style={{ color: colors.white, fontSize: '24px', marginBottom: spacing.xl }}>⚙️ Kütüphane Ayarları</h2>
+      {/* Öğretmen Kayıt Kodu */}
+      <Card style={{ marginBottom: spacing.xl }}>
+        <Card.Header><Card.Title>Ogretmen Kayit Kodu</Card.Title></Card.Header>
+        <Card.Content>
+          {teacherCodeLoading ? (
+            <p style={{ color: colors.gray }}>Yukleniyor...</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
+              <p style={{ color: colors.gray, fontSize: '13px', margin: 0 }}>
+                Ogretmenlerin kayit olabilmesi icin bir kod belirleyin. Bu kodu ogretmenlerle paylasarak kayit olmalarini saglayabilirsiniz.
+              </p>
+              <div style={{ display: 'flex', gap: spacing.sm, alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', color: colors.gray, marginBottom: spacing.sm, fontSize: '14px' }}>Kod</label>
+                  <Input
+                    value={teacherCodeInput}
+                    onChange={(e) => setTeacherCodeInput(e.target.value.toUpperCase())}
+                    placeholder="Ornek: OGRT2024"
+                    style={{ fontFamily: 'monospace', letterSpacing: '2px' }}
+                  />
+                </div>
+                <Button type="button" variant="outline" onClick={generateRandomCode} style={{ whiteSpace: 'nowrap' }}>
+                  Rastgele Olustur
+                </Button>
+              </div>
+              {teacherCode && (
+                <div style={{ padding: spacing.md, backgroundColor: colors.bg, borderRadius: '8px', display: 'flex', alignItems: 'center', gap: spacing.md }}>
+                  <span style={{ color: colors.gray, fontSize: '13px' }}>Mevcut kod:</span>
+                  <code style={{ color: colors.primaryLight, fontWeight: 600, letterSpacing: '2px', fontSize: '16px' }}>{teacherCode}</code>
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: spacing.sm }}>
+                <Button type="button" onClick={handleSaveTeacherCode} disabled={teacherCodeSaving}>
+                  {teacherCodeSaving ? 'Kaydediliyor...' : 'Kodu Kaydet'}
+                </Button>
+                {teacherCode && (
+                  <Button type="button" variant="danger" onClick={handleRemoveTeacherCode} disabled={teacherCodeSaving}>
+                    Kodu Kaldir
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </Card.Content>
+      </Card>
+
       <form onSubmit={handleSave}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: spacing.xl }}>
           {/* Ödünç Alma Ayarları */}

@@ -14,7 +14,7 @@ export interface UserProfile {
   firebaseUid: string;
   email: string;
   name: string;
-  role: 'DEVELOPER' | 'ADMIN' | 'MEMBER';
+  role: 'DEVELOPER' | 'ADMIN' | 'TEACHER' | 'MEMBER';
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   isMainAdmin: boolean;
   schoolId: string | null;
@@ -310,7 +310,7 @@ export const useRequireAuth = (redirectTo: string = '/login') => {
 
 // Hook for requiring specific role
 export const useRequireRole = (
-  allowedRoles: ('DEVELOPER' | 'ADMIN' | 'MEMBER')[],
+  allowedRoles: ('DEVELOPER' | 'ADMIN' | 'TEACHER' | 'MEMBER')[],
   redirectTo: string = '/books'
 ) => {
   const auth = useAuth();

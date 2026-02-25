@@ -7,7 +7,7 @@ import { colors } from '@/lib/theme';
 
 export interface ProtectedRouteProps {
   children: ReactNode;
-  allowedRoles?: ('DEVELOPER' | 'ADMIN' | 'MEMBER')[];
+  allowedRoles?: ('DEVELOPER' | 'ADMIN' | 'TEACHER' | 'MEMBER')[];
   requireSchool?: boolean;
   redirectTo?: string;
   fallback?: ReactNode;
@@ -146,7 +146,7 @@ export function withProtectedRoute<P extends object>(
 }
 
 // Hooks for checking permissions in components
-export const useHasRole = (allowedRoles: ('DEVELOPER' | 'ADMIN' | 'MEMBER')[]) => {
+export const useHasRole = (allowedRoles: ('DEVELOPER' | 'ADMIN' | 'TEACHER' | 'MEMBER')[]) => {
   const { profile, loading } = useAuth();
 
   if (loading || !profile) return false;

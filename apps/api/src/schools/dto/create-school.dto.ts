@@ -99,4 +99,10 @@ export class UpdateSchoolDto {
   @IsOptional()
   @IsBoolean({ message: 'isActive boolean olmalıdır' })
   isActive?: boolean;
+
+  @IsOptional()
+  @IsString({ message: 'Öğretmen kodu metin olmalıdır' })
+  @MaxLength(50, { message: 'Öğretmen kodu en fazla 50 karakter olabilir' })
+  @Transform(({ value }) => value ? sanitizeString(value) : null)
+  teacherCode?: string | null;
 }

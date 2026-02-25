@@ -181,10 +181,11 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
 Badge.displayName = 'Badge';
 
 // Role-specific badges
-export const RoleBadge = ({ role }: { role: 'DEVELOPER' | 'ADMIN' | 'MEMBER' }) => {
+export const RoleBadge = ({ role }: { role: 'DEVELOPER' | 'ADMIN' | 'TEACHER' | 'MEMBER' }) => {
   const roleConfig: Record<string, { variant: BadgeVariant; label: string }> = {
     DEVELOPER: { variant: 'primary', label: 'Geliştirici' },
     ADMIN: { variant: 'warning', label: 'Yönetici' },
+    TEACHER: { variant: 'info', label: 'Öğretmen' },
     MEMBER: { variant: 'default', label: 'Üye' },
   };
 

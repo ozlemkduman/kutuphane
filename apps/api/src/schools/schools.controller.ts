@@ -143,6 +143,40 @@ export class SchoolsController {
     return this.schoolsService.getSchoolStats(id);
   }
 
+  // GET /api/schools/my/teacher-code - Öğretmen kayıt kodunu getir (Admin)
+  @Get('my/teacher-code')
+  @UseGuards(AdminGuard)
+  async getTeacherCode(@Req() req: any) {
+    const school = await this.schoolsService.findOne(req.user.schoolId);
+    return { teacherCode: school?.teacherCode || null };
+  }
+
+  // PUT /api/schools/my/teacher-code - Öğretmen kayıt kodunu güncelle (Admin)
+  @Put('my/teacher-code')
+  @UseGuards(AdminGuard)
+  async updateTeacherCode(
+    @Req() req: any,
+    @Body() data: { teacherCode: string | null },
+  ) {
+    const schoolId = req.user.schoolId;
+    const updated = await this.schoolsService.update(schoolId, {
+      teacherCode: data.teacherCode || null,
+    });
+
+    await this.auditService.logSuccess(AuditAction.SCHOOL_UPDATE, {
+      userId: req.user?.id,
+      userEmail: req.user?.email,
+      schoolId,
+      resourceType: 'School',
+      resourceId: schoolId,
+      details: { action: 'update_teacher_code', hasCode: !!data.teacherCode },
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    return { teacherCode: updated.teacherCode || null };
+  }
+
   // GET /api/schools/my/settings - Kendi okulum ayarları (Admin)
   @Get('my/settings')
   @UseGuards(AdminGuard)
