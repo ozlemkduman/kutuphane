@@ -330,24 +330,17 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
     setLoading(true);
 
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId || !(window as any).google?.accounts?.oauth2) {
+    if (!clientId || !(window as any).google?.accounts?.id) {
       toast.error('Google servisi yuklenemedi. Sayfayi yenileyip tekrar deneyin.');
       setLoading(false);
       return;
     }
 
-    const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+    (window as any).google.accounts.id.initialize({
       client_id: clientId,
-      scope: 'email profile openid',
-      callback: async (tokenResponse: any) => {
-        if (tokenResponse.error) {
-          toast.error('Google giris iptal edildi.');
-          setLoading(false);
-          return;
-        }
-
+      callback: async (response: any) => {
         try {
-          const credential = GoogleAuthProvider.credential(null, tokenResponse.access_token);
+          const credential = GoogleAuthProvider.credential(response.credential);
           const result = await signInWithCredential(auth, credential);
           const token = await result.user.getIdToken();
 
@@ -365,13 +358,16 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
           setLoading(false);
         }
       },
-      error_callback: () => {
-        toast.error('Google giris penceresi acilamadi.');
-        setLoading(false);
-      },
+      ux_mode: 'popup',
+      context: 'signup',
     });
 
-    tokenClient.requestAccessToken({ prompt: 'select_account' });
+    (window as any).google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        setLoading(false);
+        toast.error('Google giris gosterilemedi. Tarayici ayarlarinizi kontrol edin.');
+      }
+    });
   };
 
   return (

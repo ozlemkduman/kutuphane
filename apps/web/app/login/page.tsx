@@ -141,25 +141,18 @@ export default function LoginPage() {
     setLoading(true);
 
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId || !(window as any).google?.accounts?.oauth2) {
+    if (!clientId || !(window as any).google?.accounts?.id) {
       setError('Google giris servisi yuklenemedi. Sayfayi yenileyip tekrar deneyin.');
       setLoading(false);
       return;
     }
 
-    const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+    (window as any).google.accounts.id.initialize({
       client_id: clientId,
-      scope: 'email profile openid',
-      callback: async (tokenResponse: any) => {
-        if (tokenResponse.error) {
-          setError('Google giris iptal edildi.');
-          setLoading(false);
-          return;
-        }
-
+      callback: async (response: any) => {
         try {
-          // Google access token ile Firebase credential olustur
-          const credential = GoogleAuthProvider.credential(null, tokenResponse.access_token);
+          // Google ID token ile Firebase credential olustur
+          const credential = GoogleAuthProvider.credential(response.credential);
           const result = await signInWithCredential(auth, credential);
           const token = await result.user.getIdToken();
 
@@ -194,13 +187,16 @@ export default function LoginPage() {
           setLoading(false);
         }
       },
-      error_callback: () => {
-        setError('Google giris penceresi acilamadi.');
-        setLoading(false);
-      },
+      ux_mode: 'popup',
+      context: 'signin',
     });
 
-    tokenClient.requestAccessToken({ prompt: 'select_account' });
+    (window as any).google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        setLoading(false);
+        setError('Google giris gosterilemedi. Tarayici ayarlarinizi kontrol edin veya e-posta ile giris yapin.');
+      }
+    });
   };
 
   // Show loading while checking auth state or redirecting
