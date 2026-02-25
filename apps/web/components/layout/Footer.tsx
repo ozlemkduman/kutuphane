@@ -161,7 +161,7 @@ export const Footer = ({ minimal = false }: FooterProps) => {
         <div style={containerStyle}>
           <div style={bottomSectionStyle}>
             <span style={copyrightStyle}>
-              &copy; {currentYear} Kütüphane. Tüm hakları saklıdır.
+              &copy; {currentYear} Bir Kitap Aldım. Tüm hakları saklıdır.
             </span>
             <div style={{ display: 'flex', gap: spacing.lg }}>
               <Link href="/privacy" style={{ ...linkStyle, fontSize: '13px' }}>
@@ -184,8 +184,8 @@ export const Footer = ({ minimal = false }: FooterProps) => {
           {/* Brand Section */}
           <div style={brandStyle}>
             <Link href="/" style={logoStyle}>
-              <span style={{ fontSize: '24px' }}>📚</span>
-              <span>Kütüphane</span>
+              <img src="/logo-kitap.png" alt="" style={{ height: '28px', width: 'auto' }} aria-hidden="true" />
+              <span>Bir Kitap Aldım</span>
             </Link>
             <p style={brandDescriptionStyle}>
               Okulunuzun dijital kütüphanesi. Kitapları keşfedin, ödünç alın ve
@@ -235,7 +235,7 @@ export const Footer = ({ minimal = false }: FooterProps) => {
         {/* Bottom Section */}
         <div style={bottomSectionStyle}>
           <span style={copyrightStyle}>
-            &copy; {currentYear} Kütüphane. Tüm hakları saklıdır.
+            &copy; {currentYear} Bir Kitap Aldım. Tüm hakları saklıdır.
           </span>
 
           <div style={socialLinksStyle}>

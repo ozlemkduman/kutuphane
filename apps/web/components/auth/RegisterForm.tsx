@@ -455,8 +455,8 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
         }}
         aria-label="Ana sayfaya git"
       >
-        <span style={{ fontSize: '32px' }}>📚</span>
-        Kitaphane
+        <img src="/logo-kitap.png" alt="" style={{ height: '36px', width: 'auto' }} aria-hidden="true" />
+        Bir Kitap Aldım
       </Link>
 
       {/* Title */}

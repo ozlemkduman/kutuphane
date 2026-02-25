@@ -246,7 +246,7 @@ export default function SelectSchoolPage() {
             alt=""
             style={{ height: '48px', width: 'auto' }}
           />
-          Kitaphane
+          Bir Kitap Aldım
         </Link>
 
         {/* Progress Indicator */}

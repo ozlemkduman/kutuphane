@@ -178,13 +178,13 @@ export default function PendingApprovalPage() {
             fontWeight: 700,
           }}
         >
-          <span style={{ fontSize: '32px' }}><img
+          <img
             src="/logo-kitap.png"
             alt=""
-            style={{ height: '40px', width: 'auto' }}
+            style={{ height: '36px', width: 'auto' }}
             aria-hidden="true"
-          /></span>
-          Kitaphane
+          />
+          Bir Kitap Aldım
         </Link>
 
         {/* Status Icon */}

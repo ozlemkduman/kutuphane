@@ -62,7 +62,7 @@ export const Features = () => {
               marginBottom: spacing.md,
             }}
           >
-            Neden Kitaphane?
+            Neden Bir Kitap Aldım?
           </h2>
           <p
             style={{

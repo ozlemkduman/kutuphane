@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
             style={{ height: '40px', width: 'auto' }}
             aria-hidden="true"
           />
-          Kitaphane
+          Bir Kitap Aldım
         </Link>
 
         {/* Title */}

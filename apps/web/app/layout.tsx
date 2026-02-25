@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Kütüphane Yönetim Sistemi",
+  title: "Bir Kitap Aldım",
   description: "Kitapları keşfet, ödünç al, oku.",
 };
 

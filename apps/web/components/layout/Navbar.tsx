@@ -245,13 +245,13 @@ export const Navbar = ({ transparent = false }: NavbarProps) => {
         <div style={containerStyle}>
           {/* Logo */}
           <Link href={profile?.role === 'DEVELOPER' ? '/developer' : '/'} style={logoStyle}>
-            <span style={{ fontSize: '28px' }}>📚</span>
+            <img src="/logo-kitap.png" alt="" style={{ height: '32px', width: 'auto' }} aria-hidden="true" />
             <span style={{
               background: `linear-gradient(135deg, ${colors.primary}, ${colors.primaryLight})`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}>
-              Kitaphane
+              Bir Kitap Aldım
             </span>
           </Link>
 

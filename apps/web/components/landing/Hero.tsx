@@ -117,7 +117,7 @@ export const Hero = ({ isAuthenticated = false }: HeroProps) => {
           lineHeight: 1.2,
         }}
       >
-        Dijital Kütüphane
+        Bir Kitap Aldım
         <br />
         Deneyimi
       </h1>

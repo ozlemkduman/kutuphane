@@ -115,7 +115,7 @@ export const AnimatedBook = () => {
                 marginBottom: '8px',
               }}
             >
-              Kitaphane
+              Bir Kitap Aldım
             </h2>
             <p
               style={{
@@ -124,7 +124,7 @@ export const AnimatedBook = () => {
                 textAlign: 'center',
               }}
             >
-              Dijital Kütüphane
+              Bir Kitap Aldım
             </p>
           </div>
 
