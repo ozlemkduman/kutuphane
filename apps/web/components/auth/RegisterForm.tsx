@@ -695,10 +695,25 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
         />
       </div>
 
+      {/* Google Register Info */}
+      {!selectedSchoolId && (
+        <p style={{
+          textAlign: 'center',
+          color: colors.warning,
+          fontSize: '13px',
+          marginBottom: spacing.md,
+          padding: spacing.sm,
+          backgroundColor: `${colors.warning}15`,
+          borderRadius: borderRadius.sm,
+        }}>
+          Google ile kayit olmak icin once yukaridaki okul ve ogrenci bilgilerini doldurun.
+        </p>
+      )}
+
       {/* Google Register Button */}
       <button
         onClick={handleGoogleRegister}
-        disabled={loading}
+        disabled={loading || !selectedSchoolId}
         type="button"
         style={{
           width: '100%',
@@ -707,7 +722,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
           borderRadius: borderRadius.md,
           backgroundColor: colors.bgLight,
           color: colors.white,
-          cursor: loading ? 'not-allowed' : 'pointer',
+          cursor: (loading || !selectedSchoolId) ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -715,7 +730,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
           fontWeight: 500,
           fontSize: '15px',
           transition: `all ${transitions.normal}`,
-          opacity: loading ? 0.6 : 1,
+          opacity: (loading || !selectedSchoolId) ? 0.5 : 1,
         }}
         onMouseEnter={(e) => {
           if (!loading) {
