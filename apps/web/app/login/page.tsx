@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -78,12 +78,6 @@ export default function LoginPage() {
       router.replace('/books');
     }
 
-    // Mobil Google redirect sonrasi: Firebase user var ama backend'de kayitli degil
-    if (user && !profile && localStorage.getItem('googleLoginPending')) {
-      localStorage.removeItem('googleLoginPending');
-      auth.signOut();
-      setError('Bu Google hesabi ile kayitli bir kullanici bulunamadi. Lutfen once kayit olun.');
-    }
   }, [authLoading, user, profile, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -142,57 +136,71 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     setError('');
     setLoading(true);
 
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const provider = new GoogleAuthProvider();
-
-    if (isMobile) {
-      // Mobilde redirect kullan - AuthContext onAuthStateChanged ile handle edecek
-      // Login sayfasindaki useEffect (user && profile) otomatik yonlendirecek
-      localStorage.setItem('googleLoginPending', 'true');
-      await signInWithRedirect(auth, provider);
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId || !(window as any).google?.accounts?.oauth2) {
+      setError('Google giris servisi yuklenemedi. Sayfayi yenileyip tekrar deneyin.');
+      setLoading(false);
       return;
     }
 
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-
-      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (userRes.ok) {
-        const userData = await userRes.json();
-        if (userData.role === 'MEMBER' || userData.role === 'TEACHER') {
-          if (userData.status === 'REJECTED') {
-            await auth.signOut();
-            setError('Basvurunuz okul yoneticiniz tarafindan reddedildi.');
-            return;
-          }
-          if (userData.status === 'PENDING') { router.push('/pending-approval'); return; }
-          if (!userData.schoolId) { router.push('/onboarding/select-school'); return; }
+    const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: 'email profile openid',
+      callback: async (tokenResponse: any) => {
+        if (tokenResponse.error) {
+          setError('Google giris iptal edildi.');
+          setLoading(false);
+          return;
         }
-        if (userData.role === 'DEVELOPER') { router.push('/developer'); return; }
-        router.push('/books');
-      } else if (userRes.status === 404) {
-        await auth.signOut();
-        setError('Bu Google hesabi ile kayitli bir kullanici bulunamadi. Lutfen once kayit olun.');
-      } else {
-        const errText = await userRes.text().catch(() => '');
-        await auth.signOut();
-        setError(`Giris hatasi (${userRes.status}): ${errText || 'Bilinmeyen hata'}`);
-      }
-    } catch (err: any) {
-      const code = err.code || '';
-      const msg = err.message || '';
-      setError(`Google giris hatasi: ${code} - ${msg}`);
-    } finally {
-      setLoading(false);
-    }
+
+        try {
+          // Google access token ile Firebase credential olustur
+          const credential = GoogleAuthProvider.credential(null, tokenResponse.access_token);
+          const result = await signInWithCredential(auth, credential);
+          const token = await result.user.getIdToken();
+
+          const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            if (userData.role === 'MEMBER' || userData.role === 'TEACHER') {
+              if (userData.status === 'REJECTED') {
+                await auth.signOut();
+                setError('Basvurunuz okul yoneticiniz tarafindan reddedildi.');
+                return;
+              }
+              if (userData.status === 'PENDING') { router.push('/pending-approval'); return; }
+              if (!userData.schoolId) { router.push('/onboarding/select-school'); return; }
+            }
+            if (userData.role === 'DEVELOPER') { router.push('/developer'); return; }
+            router.push('/books');
+          } else if (userRes.status === 404) {
+            await auth.signOut();
+            setError('Bu Google hesabi ile kayitli bir kullanici bulunamadi. Lutfen once kayit olun.');
+          } else {
+            const errText = await userRes.text().catch(() => '');
+            await auth.signOut();
+            setError(`Giris hatasi (${userRes.status}): ${errText || 'Bilinmeyen hata'}`);
+          }
+        } catch (err: any) {
+          setError(`Google giris hatasi: ${err.message || 'Bilinmeyen hata'}`);
+        } finally {
+          setLoading(false);
+        }
+      },
+      error_callback: () => {
+        setError('Google giris penceresi acilamadi.');
+        setLoading(false);
+      },
+    });
+
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
   };
 
   // Show loading while checking auth state or redirecting
