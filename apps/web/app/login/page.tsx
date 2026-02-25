@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -59,6 +59,40 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Google redirect sonucunu isle (popup fallback)
+  useEffect(() => {
+    getRedirectResult(auth).then(async (result) => {
+      if (!result) return;
+      setLoading(true);
+      try {
+        const token = await result.user.getIdToken();
+        const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          if (userData.role === 'MEMBER' || userData.role === 'TEACHER') {
+            if (userData.status === 'REJECTED') { await auth.signOut(); setError('Basvurunuz reddedildi.'); return; }
+            if (userData.status === 'PENDING') { router.push('/pending-approval'); return; }
+            if (!userData.schoolId) { router.push('/onboarding/select-school'); return; }
+          }
+          if (userData.role === 'DEVELOPER') { router.push('/developer'); return; }
+          router.push('/books');
+        } else if (userRes.status === 404) {
+          await auth.signOut();
+          setError('Bu Google hesabi ile kayitli kullanici bulunamadi. Lutfen once kayit olun.');
+        } else {
+          await auth.signOut();
+          setError('Giris yapilamadi. Lutfen tekrar deneyin.');
+        }
+      } catch (err: any) {
+        setError(getErrorMessage(err.code));
+      } finally {
+        setLoading(false);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -152,41 +186,57 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleLoginResult = async (result: any) => {
+    const token = await result.user.getIdToken();
+    const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    if (userRes.ok) {
+      const userData = await userRes.json();
+      if (userData.role === 'MEMBER' || userData.role === 'TEACHER') {
+        if (userData.status === 'REJECTED') {
+          await auth.signOut();
+          setError('Basvurunuz okul yoneticiniz tarafindan reddedildi.');
+          return;
+        }
+        if (userData.status === 'PENDING') { router.push('/pending-approval'); return; }
+        if (!userData.schoolId) { router.push('/onboarding/select-school'); return; }
+      }
+      if (userData.role === 'DEVELOPER') { router.push('/developer'); return; }
+      router.push('/books');
+    } else if (userRes.status === 404) {
+      await auth.signOut();
+      setError('Bu Google hesabi ile kayitli bir kullanici bulunamadi. Lutfen once kayit olun.');
+    } else {
+      await auth.signOut();
+      setError('Giris yapilamadi. Lutfen tekrar deneyin.');
+    }
+  };
+
   const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
 
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-
-      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (userRes.ok) {
-        const userData = await userRes.json();
-        if (userData.role === 'MEMBER' || userData.role === 'TEACHER') {
-          if (userData.status === 'REJECTED') {
-            await auth.signOut();
-            setError('Basvurunuz okul yoneticiniz tarafindan reddedildi.');
-            return;
-          }
-          if (userData.status === 'PENDING') { router.push('/pending-approval'); return; }
-          if (!userData.schoolId) { router.push('/onboarding/select-school'); return; }
+      try {
+        // Once popup dene
+        const result = await signInWithPopup(auth, provider);
+        await handleGoogleLoginResult(result);
+      } catch (popupErr: any) {
+        // Popup basarisiz olursa redirect'e gec
+        if (popupErr.code === 'auth/popup-blocked' ||
+            popupErr.code === 'auth/popup-closed-by-user' ||
+            popupErr.code === 'auth/cancelled-popup-request' ||
+            popupErr.code === 'auth/internal-error') {
+          await signInWithRedirect(auth, provider);
+          return; // Sayfa yenilenecek, redirect handler devralacak
         }
-        if (userData.role === 'DEVELOPER') { router.push('/developer'); return; }
-        router.push('/books');
-      } else if (userRes.status === 404) {
-        await auth.signOut();
-        setError('Bu Google hesabi ile kayitli bir kullanici bulunamadi. Lutfen once kayit olun.');
-      } else {
-        await auth.signOut();
-        setError('Giris yapilamadi. Lutfen tekrar deneyin.');
+        throw popupErr;
       }
     } catch (err: any) {
-      setError(getErrorMessage(err.code));
+      setError(err.code ? getErrorMessage(err.code) : (err.message || 'Google ile giris yapilamadi'));
     } finally {
       setLoading(false);
     }

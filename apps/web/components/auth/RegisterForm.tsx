@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -117,6 +117,51 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
   const [schoolsLoading, setSchoolsLoading] = useState(true);
 
   const passwordStrength = getPasswordStrength(password);
+
+  // Google redirect sonucunu isle (popup fallback)
+  useEffect(() => {
+    getRedirectResult(auth).then(async (result) => {
+      if (!result) return;
+      const savedData = localStorage.getItem('googleRegisterData');
+      if (!savedData) return;
+      const data = JSON.parse(savedData);
+      localStorage.removeItem('googleRegisterData');
+
+      setLoading(true);
+      try {
+        const token = await result.user.getIdToken();
+        const body: any = {
+          name: result.user.displayName || 'Isimsiz',
+          email: result.user.email || '',
+        };
+        if (data.schoolSlug) {
+          body.schoolSlug = data.schoolSlug;
+          if (data.userType === 'teacher') {
+            body.teacherCode = data.teacherCode;
+          } else {
+            body.className = data.className;
+            body.section = data.section;
+            body.studentNumber = data.studentNumber;
+          }
+        }
+        const registerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(body),
+        });
+        if (!registerRes.ok) {
+          const errData = await registerRes.json().catch(() => ({}));
+          throw new Error(errData.message || 'Kayit yapilamadi');
+        }
+        toast.success('Kayit basarili! Onay bekleniyor...');
+        router.push('/pending-approval');
+      } catch (err: any) {
+        toast.error(err.message || 'Kayit yapilirken bir hata olustu');
+      } finally {
+        setLoading(false);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Okullari yukle
   useEffect(() => {
@@ -331,17 +376,38 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
 
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
+      try {
+        // Once popup dene
+        const result = await signInWithPopup(auth, provider);
+        const token = await result.user.getIdToken();
 
-      await registerUser(
-        token,
-        result.user.displayName || name || 'Isimsiz',
-        result.user.email || ''
-      );
+        await registerUser(
+          token,
+          result.user.displayName || name || 'Isimsiz',
+          result.user.email || ''
+        );
 
-      toast.success('Kayit basarili! Onay bekleniyor...');
-      router.push('/pending-approval');
+        toast.success('Kayit basarili! Onay bekleniyor...');
+        router.push('/pending-approval');
+      } catch (popupErr: any) {
+        // Popup basarisiz olursa redirect'e gec
+        if (popupErr.code === 'auth/popup-blocked' ||
+            popupErr.code === 'auth/popup-closed-by-user' ||
+            popupErr.code === 'auth/cancelled-popup-request' ||
+            popupErr.code === 'auth/internal-error') {
+          localStorage.setItem('googleRegisterData', JSON.stringify({
+            schoolSlug: selectedSchool?.slug,
+            userType,
+            teacherCode: teacherCode.trim(),
+            className: className.trim(),
+            section: section.trim().toUpperCase(),
+            studentNumber: studentNumber.trim(),
+          }));
+          await signInWithRedirect(auth, provider);
+          return;
+        }
+        throw popupErr;
+      }
     } catch (err: any) {
       if (err.code) {
         toast.error(getErrorMessage(err.code));
