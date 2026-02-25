@@ -102,7 +102,7 @@ export default function FavoritesPage() {
         <Navbar />
         <main id="main-content" role="main" aria-label="Favorilerim" style={{ flex: 1, maxWidth: '1200px', margin: '0 auto', padding: `${spacing['2xl']} ${spacing.lg}`, width: '100%', boxSizing: 'border-box' }}>
           <Skeleton variant="text" width="200px" height="32px" style={{ marginBottom: spacing.xl }} />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: spacing.lg }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: spacing.lg }}>
             {[1, 2, 3, 4].map((i) => (
               <Card key={i} style={{ padding: spacing.lg }}>
                 <div style={{ display: 'flex', gap: spacing.md }}>
@@ -131,7 +131,7 @@ export default function FavoritesPage() {
       <Navbar />
 
       <main id="main-content" role="main" aria-label="Favorilerim" style={{ flex: 1, maxWidth: '1200px', margin: '0 auto', padding: `${spacing['2xl']} ${spacing.lg}`, width: '100%', boxSizing: 'border-box' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xl }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xl, flexWrap: 'wrap', gap: spacing.md }}>
           <h1 style={{ fontSize: '28px', fontWeight: 700, color: colors.white, margin: 0 }}>
             Favorilerim
             <span style={{ color: colors.gray, fontSize: '16px', fontWeight: 400, marginLeft: spacing.md }}>
@@ -154,7 +154,7 @@ export default function FavoritesPage() {
             </Link>
           </Card>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: spacing.lg }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap: spacing.lg }}>
             {favorites.map((favorite) => (
               <Card
                 key={favorite.id}

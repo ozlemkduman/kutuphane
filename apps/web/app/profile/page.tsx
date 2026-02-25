@@ -319,7 +319,7 @@ export default function ProfilePage() {
       <main id="main-content" role="main" aria-label="Profilim" style={{ flex: 1, maxWidth: '1000px', margin: '0 auto', padding: `${spacing['2xl']} ${spacing.lg}`, width: '100%', boxSizing: 'border-box' }}>
         {/* Header */}
         <div style={{ marginBottom: spacing['2xl'] }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.lg, marginBottom: spacing.md }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.lg, marginBottom: spacing.md, flexWrap: 'wrap' }}>
             <div style={{
               width: '64px',
               height: '64px',
@@ -331,10 +331,11 @@ export default function ProfilePage() {
               fontSize: '28px',
               color: colors.white,
               fontWeight: 700,
+              flexShrink: 0,
             }}>
               {profile?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
-            <div>
+            <div style={{ flex: 1, minWidth: '150px' }}>
               <h1 style={{ fontSize: '28px', fontWeight: 700, color: colors.white, margin: 0 }}>
                 {profile?.name || 'Kullanıcı'}
               </h1>
@@ -342,7 +343,7 @@ export default function ProfilePage() {
                 {profile?.email}
               </p>
             </div>
-            <Badge variant={profile?.role === 'ADMIN' ? 'admin' : 'member'} style={{ marginLeft: 'auto' }}>
+            <Badge variant={profile?.role === 'ADMIN' ? 'admin' : 'member'}>
               {profile?.role === 'ADMIN' ? 'Yönetici' : 'Üye'}
             </Badge>
           </div>
@@ -365,7 +366,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: spacing.sm, marginBottom: spacing.xl, borderBottom: `1px solid ${colors.border}`, paddingBottom: spacing.md }}>
+        <div style={{ display: 'flex', gap: spacing.sm, marginBottom: spacing.xl, borderBottom: `1px solid ${colors.border}`, paddingBottom: spacing.md, flexWrap: 'wrap' }}>
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -594,7 +595,7 @@ export default function ProfilePage() {
         {/* Notifications Tab */}
         {activeTab === 'notifications' && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg, flexWrap: 'wrap', gap: spacing.md }}>
               <h2 style={{ fontSize: '20px', fontWeight: 600, color: colors.white, margin: 0 }}>
                 🔔 Bildirimler
               </h2>

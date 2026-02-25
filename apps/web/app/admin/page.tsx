@@ -218,28 +218,29 @@ export default function AdminPage() {
         )}
 
         {/* Tab Navigation */}
-        <div style={{ display: 'flex', gap: spacing.sm, marginBottom: spacing.xl, overflowX: 'auto', paddingBottom: spacing.sm }}>
+        <div style={{ display: 'flex', gap: spacing.xs, marginBottom: spacing.xl, overflowX: 'auto', paddingBottom: spacing.sm, WebkitOverflowScrolling: 'touch' }}>
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               style={{
-                display: 'flex', alignItems: 'center', gap: spacing.sm,
-                padding: `${spacing.md} ${spacing.lg}`,
+                display: 'flex', alignItems: 'center', gap: '4px',
+                padding: `${spacing.sm} ${spacing.md}`,
                 backgroundColor: activeTab === tab.id ? colors.primary : colors.card,
                 color: activeTab === tab.id ? colors.white : colors.gray,
                 border: `1px solid ${activeTab === tab.id ? colors.primary : colors.border}`,
-                borderRadius: borderRadius.lg, cursor: 'pointer', fontSize: '14px',
+                borderRadius: borderRadius.md, cursor: 'pointer', fontSize: '13px',
                 fontWeight: activeTab === tab.id ? 600 : 500, whiteSpace: 'nowrap',
                 position: 'relative', transition: `all ${transitions.normal}`,
+                flexShrink: 0,
               }}
             >
-              <span>{tab.icon}</span>
+              <span style={{ fontSize: '14px' }}>{tab.icon}</span>
               {tab.label}
               {tab.badge && tab.badge > 0 && (
                 <span style={{
-                  backgroundColor: colors.error, color: 'white', fontSize: '11px',
-                  padding: '2px 6px', borderRadius: borderRadius.full, fontWeight: 'bold',
+                  backgroundColor: colors.error, color: 'white', fontSize: '10px',
+                  padding: '1px 5px', borderRadius: borderRadius.full, fontWeight: 'bold',
                 }}>{tab.badge}</span>
               )}
             </button>

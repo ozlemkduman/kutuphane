@@ -114,7 +114,7 @@ export function AdminMembers({ members, setMembers, userInfo, selectedSchoolId, 
               </div>
             ) : memberDetail && (
               <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.xl }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.xl, flexWrap: 'wrap', gap: spacing.md }}>
                   <div>
                     <h2 style={{ color: colors.white, margin: 0, fontSize: '24px' }}>{memberDetail.user.name}</h2>
                     <p style={{ color: colors.gray, margin: `${spacing.xs} 0 0` }}>{memberDetail.user.email}</p>
@@ -159,6 +159,7 @@ export function AdminMembers({ members, setMembers, userInfo, selectedSchoolId, 
                             backgroundColor: isOverdue ? `${colors.error}15` : colors.bg,
                             padding: spacing.md, borderRadius: borderRadius.md,
                             border: isOverdue ? `1px solid ${colors.error}50` : 'none',
+                            flexWrap: 'wrap', gap: spacing.sm,
                           }}>
                             <div>
                               <p style={{ color: colors.white, fontWeight: 600, margin: 0, fontSize: '14px' }}>{loan.book.title}</p>

@@ -48,7 +48,7 @@ export function AdminReports({ popularBooks, neverBorrowed, lowStock, neverBorro
   return (
     <div>
       <h2 style={{ color: colors.white, fontSize: '24px', marginBottom: spacing.xl }}>📈 Raporlar</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: spacing.xl }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(350px, 100%), 1fr))', gap: spacing.xl }}>
         {/* Popular Books */}
         <Card>
           <Card.Header><Card.Title>🏆 En Çok Ödünç Alınan</Card.Title></Card.Header>

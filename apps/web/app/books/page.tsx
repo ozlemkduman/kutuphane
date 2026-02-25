@@ -230,7 +230,7 @@ export default function BooksPage() {
               <Skeleton key={i} variant="rounded" width="100px" height="36px" />
             ))}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: spacing.xl }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(250px, 100%), 1fr))', gap: spacing.xl }}>
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <Card key={i}>
                 <Skeleton variant="rounded" height="160px" style={{ marginBottom: spacing.md }} />
@@ -260,8 +260,8 @@ export default function BooksPage() {
           <h1 style={{ fontSize: '32px', fontWeight: 700, color: colors.white, margin: 0 }}>
             Kitaplar
           </h1>
-          <div style={{ display: 'flex', gap: spacing.md, alignItems: 'center' }}>
-            <div style={{ position: 'relative', width: '280px' }}>
+          <div style={{ display: 'flex', gap: spacing.md, alignItems: 'center', flex: '1 1 280px', minWidth: 0 }}>
+            <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 0 }}>
               <Input
                 type="text"
                 placeholder="Kitap, yazar veya ISBN ara..."
@@ -273,6 +273,7 @@ export default function BooksPage() {
             <Button
               variant={showFilters ? 'primary' : 'outline'}
               onClick={() => setShowFilters(!showFilters)}
+              style={{ flexShrink: 0 }}
             >
               ⚙️ Filtreler
             </Button>
@@ -282,7 +283,7 @@ export default function BooksPage() {
         {/* Gelişmiş Filtreler */}
         {showFilters && (
           <Card style={{ marginBottom: spacing.xl, padding: spacing.lg }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: spacing.lg }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: spacing.lg }}>
               {/* Sıralama */}
               <div>
                 <label style={{ display: 'block', color: colors.gray, marginBottom: spacing.sm, fontSize: '13px' }}>
@@ -443,7 +444,7 @@ export default function BooksPage() {
 
         {/* Kitap Listesi */}
         {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: spacing.xl }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(250px, 100%), 1fr))', gap: spacing.xl }}>
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <Card key={i}>
                 <Skeleton variant="rounded" height="160px" style={{ marginBottom: spacing.md }} />
@@ -469,7 +470,7 @@ export default function BooksPage() {
           </Card>
         ) : (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: spacing.xl }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(250px, 100%), 1fr))', gap: spacing.xl }}>
               {books.map((book) => (
                 <Card key={book.id} hoverable style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                   <div style={{

@@ -17,7 +17,7 @@ export function AdminActivities({ activities }: AdminActivitiesProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
         {activities.map((activity) => (
           <Card key={activity.id} style={{ padding: spacing.lg }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing.lg }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: spacing.lg, flexWrap: 'wrap' }}>
               <div style={{
                 width: '48px', height: '48px', borderRadius: '50%',
                 backgroundColor: activity.returnedAt ? colors.success + '20' : colors.warning + '20',

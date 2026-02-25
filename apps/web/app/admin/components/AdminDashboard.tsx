@@ -44,8 +44,8 @@ export function AdminDashboard({ stats, chartData, activities, pendingUsers, ove
       {/* Quick Alerts */}
       {pendingUsers.length > 0 && (
         <Alert variant="warning" style={{ marginBottom: spacing.xl }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-            <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: spacing.sm }}>
+            <div style={{ flex: '1 1 200px', minWidth: 0 }}>
               <strong>{pendingUsers.length} ogrenci onay bekliyor!</strong>
               <span style={{ display: 'block', opacity: 0.8, fontSize: '13px' }}>Onay Bekleyenler sekmesinden onaylayabilirsiniz.</span>
             </div>
@@ -58,8 +58,8 @@ export function AdminDashboard({ stats, chartData, activities, pendingUsers, ove
 
       {overdueLoans.length > 0 && (
         <Alert variant="error" style={{ marginBottom: spacing.xl }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-            <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: spacing.sm }}>
+            <div style={{ flex: '1 1 200px', minWidth: 0 }}>
               <strong>{overdueLoans.length} gecikmis iade var!</strong>
               <span style={{ display: 'block', opacity: 0.8, fontSize: '13px' }}>Gecikmeler sekmesinden detaylari goruntuleyebilirsiniz.</span>
             </div>
@@ -72,7 +72,7 @@ export function AdminDashboard({ stats, chartData, activities, pendingUsers, ove
 
       {/* Charts Section */}
       {chartData && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: spacing.xl, marginBottom: spacing.xl }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap: spacing.xl, marginBottom: spacing.xl }}>
           {/* Monthly Loans Chart */}
           <Card>
             <Card.Header>

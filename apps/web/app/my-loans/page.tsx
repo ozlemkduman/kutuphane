@@ -237,7 +237,7 @@ export default function MyLoansPage() {
         {/* Ceza Bilgisi */}
         {data.stats.unpaidFines > 0 && (
           <Card style={{ padding: spacing.lg, marginBottom: spacing.xl, backgroundColor: colors.error + '10', borderColor: colors.error }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: spacing.md }}>
               <div>
                 <p style={{ color: colors.error, fontWeight: 600, margin: 0 }}>Ödenmemiş Ceza</p>
                 <p style={{ color: colors.gray, fontSize: '14px', margin: 0 }}>Toplam gecikme cezanız</p>

@@ -89,7 +89,7 @@ export function AdminCategories({ categories, setCategories, userInfo, selectedS
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xl }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xl, flexWrap: 'wrap', gap: spacing.md }}>
         <h2 style={{ color: colors.white, fontSize: '24px', margin: 0 }}>🏷️ Kategori Yönetimi</h2>
         <Button onClick={() => openForm()}>+ Yeni Kategori</Button>
       </div>
@@ -130,7 +130,7 @@ export function AdminCategories({ categories, setCategories, userInfo, selectedS
         </Card>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: spacing.lg }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap: spacing.lg }}>
         {categories.map((category) => (
           <Card key={category.id} style={{ padding: spacing.lg }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
