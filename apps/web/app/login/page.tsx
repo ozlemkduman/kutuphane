@@ -145,7 +145,8 @@ export default function LoginPage() {
         router.push('/books');
       }
     } catch (err: any) {
-      setError(getErrorMessage(err.code));
+      console.error('Login error:', err);
+      setError(err.code ? getErrorMessage(err.code) : `Hata: ${err.message || JSON.stringify(err)}`);
     } finally {
       setLoading(false);
     }
