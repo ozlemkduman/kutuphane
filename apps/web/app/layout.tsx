@@ -14,9 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <head>
-        <script src="https://accounts.google.com/gsi/client" async defer></script>
-      </head>
+      <head />
       <body style={{ margin: 0, fontFamily: 'Arial, sans-serif' }}>
         <a href="#main-content" className="skip-link">
           Ana içeriğe atla

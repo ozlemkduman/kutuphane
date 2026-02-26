@@ -1,6 +1,6 @@
 // UsersController - Kullanıcı endpoint'leri
 
-import { Controller, Post, Get, Put, Body, UseGuards, Req, Param, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, UseGuards, Req, Param, NotFoundException, BadRequestException, ForbiddenException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
@@ -93,10 +93,25 @@ export class UsersController {
     // RegisterGuard token'ı doğruladı, firebaseUid req.user'da
     const { firebaseUid } = req.user;
 
-    // Kullanıcı zaten var mı kontrol et
+    // Kullanıcı zaten var mı kontrol et (Firebase UID ile)
     const existing = await this.usersService.findByFirebaseUid(firebaseUid);
     if (existing) {
       return existing;  // Varsa mevcut kullanıcıyı döndür
+    }
+
+    // Aynı email ile kayıtlı kullanıcı var mı kontrol et
+    const existingByEmail = await this.prisma.user.findUnique({
+      where: { email: data.email },
+      include: { school: true },
+    });
+    if (existingByEmail) {
+      // Farklı Firebase UID ile aynı email - eski kaydı güncelle
+      const updated = await this.prisma.user.update({
+        where: { id: existingByEmail.id },
+        data: { firebaseUid },
+        include: { school: true },
+      });
+      return updated;
     }
 
     // Okul slug'ı ile okul bul
@@ -141,37 +156,56 @@ export class UsersController {
     }
 
     // Yeni kullanıcı oluştur (status: PENDING)
-    const newUser = await this.usersService.create({
-      firebaseUid,
-      email: data.email,
-      name: data.name,
-      schoolId: school.id,
-      role,
-      className: role === 'TEACHER' ? null : data.className!,
-      section: role === 'TEACHER' ? null : data.section!,
-      studentNumber: role === 'TEACHER' ? null : data.studentNumber!,
-    });
-
-    // Audit log
-    await this.auditService.logSuccess(AuditAction.USER_REGISTER, {
-      userId: newUser.id,
-      userEmail: data.email,
-      schoolId: school.id,
-      details: {
+    try {
+      const newUser = await this.usersService.create({
+        firebaseUid,
+        email: data.email,
         name: data.name,
-        schoolName: school.name,
+        schoolId: school.id,
         role,
-        ...(role === 'MEMBER' ? {
-          className: data.className,
-          section: data.section,
-          studentNumber: data.studentNumber,
-        } : {}),
-      },
-      ip: req.ip,
-      userAgent: req.headers['user-agent'],
-    });
+        className: role === 'TEACHER' ? null : data.className!,
+        section: role === 'TEACHER' ? null : data.section!,
+        studentNumber: role === 'TEACHER' ? null : data.studentNumber!,
+      });
 
-    return newUser;
+      // Audit log
+      await this.auditService.logSuccess(AuditAction.USER_REGISTER, {
+        userId: newUser.id,
+        userEmail: data.email,
+        schoolId: school.id,
+        details: {
+          name: data.name,
+          schoolName: school.name,
+          role,
+          ...(role === 'MEMBER' ? {
+            className: data.className,
+            section: data.section,
+            studentNumber: data.studentNumber,
+          } : {}),
+        },
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+
+      return newUser;
+    } catch (error: any) {
+      // Prisma unique constraint hatası
+      if (error.code === 'P2002') {
+        const fields = error.meta?.target;
+        if (fields?.includes('email')) {
+          throw new ConflictException('Bu e-posta adresi zaten kayıtlı');
+        }
+        if (fields?.includes('firebaseUid')) {
+          throw new ConflictException('Bu hesap zaten kayıtlı');
+        }
+        if (fields?.includes('studentNumber')) {
+          throw new ConflictException('Bu okul numarası zaten kayıtlı');
+        }
+        throw new ConflictException('Bu bilgilerle zaten bir kayıt mevcut');
+      }
+      console.error('Kayıt hatası:', error);
+      throw new InternalServerErrorException('Kayıt oluşturulurken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'));
+    }
   }
 
   // POST /api/users/select-school - Okul seçimi (onboarding için)

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -136,67 +136,51 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
 
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId || !(window as any).google?.accounts?.id) {
-      setError('Google giris servisi yuklenemedi. Sayfayi yenileyip tekrar deneyin.');
-      setLoading(false);
-      return;
-    }
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const token = await result.user.getIdToken();
 
-    (window as any).google.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (response: any) => {
-        try {
-          // Google ID token ile Firebase credential olustur
-          const credential = GoogleAuthProvider.credential(response.credential);
-          const result = await signInWithCredential(auth, credential);
-          const token = await result.user.getIdToken();
+      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
 
-          const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
-            headers: { 'Authorization': `Bearer ${token}` },
-          });
-
-          if (userRes.ok) {
-            const userData = await userRes.json();
-            if (userData.role === 'MEMBER' || userData.role === 'TEACHER') {
-              if (userData.status === 'REJECTED') {
-                await auth.signOut();
-                setError('Basvurunuz okul yoneticiniz tarafindan reddedildi.');
-                return;
-              }
-              if (userData.status === 'PENDING') { router.push('/pending-approval'); return; }
-              if (!userData.schoolId) { router.push('/onboarding/select-school'); return; }
-            }
-            if (userData.role === 'DEVELOPER') { router.push('/developer'); return; }
-            router.push('/books');
-          } else if (userRes.status === 404) {
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        if (userData.role === 'MEMBER' || userData.role === 'TEACHER') {
+          if (userData.status === 'REJECTED') {
             await auth.signOut();
-            setError('Bu Google hesabi ile kayitli bir kullanici bulunamadi. Lutfen once kayit olun.');
-          } else {
-            const errText = await userRes.text().catch(() => '');
-            await auth.signOut();
-            setError(`Giris hatasi (${userRes.status}): ${errText || 'Bilinmeyen hata'}`);
+            setError('Basvurunuz okul yoneticiniz tarafindan reddedildi.');
+            return;
           }
-        } catch (err: any) {
-          setError(`Google giris hatasi: ${err.message || 'Bilinmeyen hata'}`);
-        } finally {
-          setLoading(false);
+          if (userData.status === 'PENDING') { router.push('/pending-approval'); return; }
+          if (!userData.schoolId) { router.push('/onboarding/select-school'); return; }
         }
-      },
-      ux_mode: 'popup',
-      context: 'signin',
-    });
-
-    (window as any).google.accounts.id.prompt((notification: any) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        setLoading(false);
-        setError('Google giris gosterilemedi. Tarayici ayarlarinizi kontrol edin veya e-posta ile giris yapin.');
+        if (userData.role === 'DEVELOPER') { router.push('/developer'); return; }
+        router.push('/books');
+      } else if (userRes.status === 401 || userRes.status === 404) {
+        // Kullanici kayitli degil - kayit sayfasina yonlendir
+        await auth.signOut();
+        setError('Bu Google hesabi ile kayitli bir kullanici bulunamadi. Kayit sayfasina yonlendiriliyorsunuz...');
+        setTimeout(() => router.push('/register'), 2000);
+      } else {
+        const errText = await userRes.text().catch(() => '');
+        await auth.signOut();
+        setError(`Giris hatasi (${userRes.status}): ${errText || 'Bilinmeyen hata'}`);
       }
-    });
+    } catch (err: any) {
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Google giris penceresi kapatildi.');
+      } else {
+        setError(`Google giris hatasi: ${err.message || 'Bilinmeyen hata'}`);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Show loading while checking auth state or redirecting

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -288,10 +288,16 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
       }
 
       const token = await result.user.getIdToken();
-      await registerUser(token, name, email);
 
-      toast.success('Kayit basarili! Onay bekleniyor...');
-      router.push('/pending-approval');
+      try {
+        await registerUser(token, name, email);
+        toast.success('Kayit basarili! Onay bekleniyor...');
+        router.push('/pending-approval');
+      } catch (apiErr: any) {
+        // API kayit hatasi - Firebase kullanicisini temizle (orphaned user olmasin)
+        try { await result.user.delete(); } catch {}
+        throw apiErr;
+      }
     } catch (err: any) {
       if (err.code) {
         toast.error(getErrorMessage(err.code));
@@ -303,71 +309,61 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
     }
   };
 
-  const handleGoogleRegister = async () => {
-    // Validation
+  const validateGoogleFields = (): boolean => {
     if (!selectedSchoolId) {
       toast.error('Lutfen once bir okul secin');
-      return;
+      return false;
     }
 
     if (userType === 'teacher') {
       if (!teacherCode.trim()) {
         toast.error('Ogretmen kodu zorunludur');
-        return;
+        return false;
       }
     } else {
       if (!className.trim() || !section.trim() || !studentNumber.trim()) {
         toast.error('Lutfen tum ogrenci bilgilerini doldurun');
-        return;
+        return false;
       }
 
       if (!/^[0-9]+$/.test(studentNumber.trim())) {
         toast.error('Okul numarasi sadece rakam icermelidir');
-        return;
+        return false;
       }
     }
+
+    return true;
+  };
+
+  const handleGoogleRegister = async () => {
+    if (!validateGoogleFields()) return;
 
     setLoading(true);
 
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId || !(window as any).google?.accounts?.id) {
-      toast.error('Google servisi yuklenemedi. Sayfayi yenileyip tekrar deneyin.');
-      setLoading(false);
-      return;
-    }
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const token = await result.user.getIdToken();
 
-    (window as any).google.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (response: any) => {
-        try {
-          const credential = GoogleAuthProvider.credential(response.credential);
-          const result = await signInWithCredential(auth, credential);
-          const token = await result.user.getIdToken();
+      await registerUser(
+        token,
+        result.user.displayName || name || 'Isimsiz',
+        result.user.email || ''
+      );
 
-          await registerUser(
-            token,
-            result.user.displayName || name || 'Isimsiz',
-            result.user.email || ''
-          );
-
-          toast.success('Kayit basarili! Onay bekleniyor...');
-          router.push('/pending-approval');
-        } catch (err: any) {
-          toast.error(err.message || 'Kayit yapilirken bir hata olustu');
-        } finally {
-          setLoading(false);
-        }
-      },
-      ux_mode: 'popup',
-      context: 'signup',
-    });
-
-    (window as any).google.accounts.id.prompt((notification: any) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        setLoading(false);
-        toast.error('Google giris gosterilemedi. Tarayici ayarlarinizi kontrol edin.');
+      toast.success('Kayit basarili! Onay bekleniyor...');
+      router.push('/pending-approval');
+    } catch (err: any) {
+      // API kayit hatasi - Firebase oturumunu kapat
+      try { await auth.signOut(); } catch {}
+      if (err.code === 'auth/popup-closed-by-user') {
+        toast.error('Google kayit penceresi kapatildi.');
+      } else {
+        toast.error(err.message || 'Kayit yapilirken bir hata olustu');
       }
-    });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
