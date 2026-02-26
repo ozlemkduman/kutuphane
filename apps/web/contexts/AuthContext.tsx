@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const data = await response.json();
         setProfile(data);
-      } else if (response.status === 404) {
+      } else if (response.status === 401 || response.status === 404) {
         // User exists in Firebase but not in database - needs registration
         setProfile(null);
       } else {
@@ -197,7 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (response.ok) {
             const data = await response.json();
             setProfile(data);
-          } else if (response.status === 404) {
+          } else if (response.status === 401 || response.status === 404) {
             setProfile(null);
           }
         } catch {
