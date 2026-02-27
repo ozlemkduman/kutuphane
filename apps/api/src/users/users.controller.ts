@@ -1,14 +1,15 @@
 // UsersController - Kullanıcı endpoint'leri
 
-import { Controller, Post, Get, Put, Body, UseGuards, Req, Param, NotFoundException, BadRequestException, ForbiddenException, InternalServerErrorException, ConflictException } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, UseGuards, Req, Param, NotFoundException, BadRequestException, ForbiddenException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
+import { TeacherOrAdminGuard } from '../auth/teacher-or-admin.guard';
 import { RegisterGuard } from '../auth/register.guard';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService, AuditAction } from '../audit/audit.service';
 import { FirebaseService } from '../auth/firebase.service';
-import { RegisterUserDto, SelectSchoolDto, UpdateUserStatusDto } from './dto/user.dto';
+import { RegisterUserDto, SelectSchoolDto, UpdateUserStatusDto, CreatePassiveStudentDto, UpdatePassiveStudentDto } from './dto/user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -71,7 +72,7 @@ export class UsersController {
     // Audit log
     await this.auditService.logSuccess(AuditAction.USER_UPDATE, {
       userId: user.id,
-      userEmail: user.email,
+      userEmail: user.email || undefined,
       schoolId: user.schoolId || undefined,
       resourceType: 'User',
       resourceId: user.id,
@@ -140,6 +141,50 @@ export class UsersController {
       // Öğrenci kaydı - alanlar zorunlu
       if (!data.className || !data.section || !data.studentNumber) {
         throw new BadRequestException('Öğrenci bilgileri zorunludur');
+      }
+
+      // Pasif öğrenci hesap devralma kontrolü
+      const passiveStudent = await this.prisma.user.findFirst({
+        where: {
+          schoolId: school.id,
+          studentNumber: data.studentNumber,
+          status: 'PASSIVE',
+        },
+      });
+
+      if (passiveStudent) {
+        // Pasif hesabı devral - aynı User.id kalır, loan geçmişi korunur
+        const claimedUser = await this.prisma.user.update({
+          where: { id: passiveStudent.id },
+          data: {
+            firebaseUid,
+            email: data.email,
+            name: data.name,
+            className: data.className,
+            section: data.section,
+            status: 'PENDING', // Admin onayı bekleyecek
+          },
+          include: { school: true },
+        });
+
+        // Audit log
+        await this.auditService.logSuccess(AuditAction.USER_UPDATE, {
+          userId: claimedUser.id,
+          userEmail: data.email,
+          schoolId: school.id,
+          resourceType: 'User',
+          resourceId: claimedUser.id,
+          details: {
+            action: 'claim_passive_account',
+            studentNumber: data.studentNumber,
+            previousName: passiveStudent.name,
+            newName: data.name,
+          },
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+        });
+
+        return claimedUser;
       }
 
       // Aynı okulda aynı öğrenci numarası var mı kontrol et (REJECTED hariç)
@@ -274,7 +319,7 @@ export class UsersController {
     // Audit log
     await this.auditService.logSuccess(AuditAction.SCHOOL_SELECT, {
       userId: user.id,
-      userEmail: user.email,
+      userEmail: user.email || undefined,
       schoolId: data.schoolId,
       details: {
         schoolName: school.name,
@@ -288,6 +333,173 @@ export class UsersController {
 
     return updatedUser;
   }
+
+  // ==================== PASSIVE STUDENT ROUTES (BEFORE :id) ====================
+
+  // POST /api/users/passive - Pasif öğrenci ekle
+  @Post('passive')
+  @UseGuards(TeacherOrAdminGuard)
+  async createPassiveStudent(@Req() req: any, @Body() data: CreatePassiveStudentDto) {
+    const schoolId = req.user.schoolId;
+    if (!schoolId) {
+      throw new BadRequestException('Okul bilgisi bulunamadı');
+    }
+
+    const student = await this.usersService.createPassiveStudent(data, schoolId, req.user.id);
+
+    await this.auditService.logSuccess(AuditAction.USER_UPDATE, {
+      userId: req.user.id,
+      userEmail: req.user.email,
+      schoolId,
+      resourceType: 'User',
+      resourceId: student.id,
+      details: { action: 'create_passive_student', studentName: data.name, studentNumber: data.studentNumber },
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    return student;
+  }
+
+  // GET /api/users/passive - Pasif öğrencileri listele
+  @Get('passive')
+  @UseGuards(TeacherOrAdminGuard)
+  async getPassiveStudents(@Req() req: any) {
+    const schoolId = req.user.schoolId;
+    if (!schoolId) {
+      throw new BadRequestException('Okul bilgisi bulunamadı');
+    }
+    return this.usersService.findPassiveStudents(schoolId);
+  }
+
+  // POST /api/users/passive/import-csv - CSV ile toplu pasif öğrenci ekle
+  @Post('passive/import-csv')
+  @UseGuards(TeacherOrAdminGuard)
+  async importPassiveStudentsCSV(@Req() req: any, @Body() data: { csv: string }) {
+    const schoolId = req.user.schoolId;
+    if (!schoolId) {
+      throw new BadRequestException('Okul bilgisi bulunamadı');
+    }
+
+    if (!data.csv) {
+      throw new BadRequestException('CSV verisi gerekli');
+    }
+
+    const students = this.usersService.parseStudentCSV(data.csv);
+    if (students.length === 0) {
+      throw new BadRequestException('CSV dosyasında geçerli öğrenci bulunamadı');
+    }
+
+    const results = await this.usersService.bulkCreatePassiveStudents(schoolId, students, req.user.id);
+
+    await this.auditService.logSuccess(AuditAction.USER_UPDATE, {
+      userId: req.user.id,
+      userEmail: req.user.email,
+      schoolId,
+      resourceType: 'User',
+      details: {
+        action: 'bulk_create_passive_students',
+        total: students.length,
+        success: results.success,
+        failed: results.failed,
+      },
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    return results;
+  }
+
+  // GET /api/users/passive/csv-template - CSV şablonu indir
+  @Get('passive/csv-template')
+  @UseGuards(TeacherOrAdminGuard)
+  async getPassiveStudentCSVTemplate() {
+    return {
+      template: 'ad,sınıf,şube,numara\n"Ahmet Yılmaz","9","A","1001"\n"Ayşe Demir","10","B","1002"',
+      filename: 'ogrenci_import_sablonu.csv',
+    };
+  }
+
+  // PUT /api/users/passive/:id - Pasif öğrenci güncelle
+  @Put('passive/:id')
+  @UseGuards(TeacherOrAdminGuard)
+  async updatePassiveStudent(@Param('id') id: string, @Req() req: any, @Body() data: UpdatePassiveStudentDto) {
+    const schoolId = req.user.schoolId;
+    if (!schoolId) {
+      throw new BadRequestException('Okul bilgisi bulunamadı');
+    }
+
+    const student = await this.usersService.updatePassiveStudent(id, schoolId, data);
+
+    await this.auditService.logSuccess(AuditAction.USER_UPDATE, {
+      userId: req.user.id,
+      userEmail: req.user.email,
+      schoolId,
+      resourceType: 'User',
+      resourceId: id,
+      details: { action: 'update_passive_student', updatedFields: Object.keys(data) },
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    return student;
+  }
+
+  // DELETE /api/users/passive/:id - Pasif öğrenci sil
+  @Delete('passive/:id')
+  @UseGuards(TeacherOrAdminGuard)
+  async deletePassiveStudent(@Param('id') id: string, @Req() req: any) {
+    const schoolId = req.user.schoolId;
+    if (!schoolId) {
+      throw new BadRequestException('Okul bilgisi bulunamadı');
+    }
+
+    await this.usersService.deletePassiveStudent(id, schoolId);
+
+    await this.auditService.logSuccess(AuditAction.USER_UPDATE, {
+      userId: req.user.id,
+      userEmail: req.user.email,
+      schoolId,
+      resourceType: 'User',
+      resourceId: id,
+      details: { action: 'delete_passive_student' },
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    return { message: 'Pasif öğrenci silindi' };
+  }
+
+  // GET /api/users/school-students - Tüm öğrencileri listele (APPROVED + PASSIVE)
+  @Get('school-students')
+  @UseGuards(TeacherOrAdminGuard)
+  async getSchoolStudents(@Req() req: any) {
+    const schoolId = req.user.schoolId;
+    if (!schoolId) {
+      throw new BadRequestException('Okul bilgisi bulunamadı');
+    }
+
+    const students = await this.prisma.user.findMany({
+      where: {
+        schoolId,
+        role: 'MEMBER',
+        status: { in: ['APPROVED', 'PASSIVE'] },
+      },
+      orderBy: [{ className: 'asc' }, { section: 'asc' }, { name: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        className: true,
+        section: true,
+        studentNumber: true,
+        status: true,
+      },
+    });
+
+    return students;
+  }
+
+  // ==================== EXISTING STATIC ROUTES ====================
 
   // GET /api/users/pending - Onay bekleyen kullanıcıları listele (Admin)
   @Get('pending')
@@ -475,9 +687,9 @@ export class UsersController {
     return results;
   }
 
-  // GET /api/users/:id/detail - Üye detayları ve ödünç geçmişi (Admin)
+  // GET /api/users/:id/detail - Üye detayları ve ödünç geçmişi (Admin/Öğretmen)
   @Get(':id/detail')
-  @UseGuards(AdminGuard)
+  @UseGuards(TeacherOrAdminGuard)
   async getUserDetail(@Param('id') id: string, @Req() req: any) {
     const schoolId = req.user.schoolId;
 

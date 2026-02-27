@@ -21,6 +21,8 @@ import {
   AdminReports,
   AdminActivities,
   AdminSettings,
+  AdminPassiveStudents,
+  AdminBorrowOnBehalf,
 } from './components';
 import type {
   Book, Category, Member, OverdueLoan, Activity, DashboardStats,
@@ -28,7 +30,7 @@ import type {
 } from './components/types';
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabType | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -71,11 +73,13 @@ export default function AdminPage() {
       if (!userText) { setLoading(false); router.replace('/books'); return; }
       const userData = JSON.parse(userText);
 
-      if (userData.role !== 'ADMIN' && userData.role !== 'DEVELOPER') {
+      if (userData.role !== 'ADMIN' && userData.role !== 'DEVELOPER' && userData.role !== 'TEACHER') {
         setLoading(false); router.replace('/books'); return;
       }
 
       setUserInfo(userData);
+      // Set default tab based on role
+      setActiveTab(userData.role === 'TEACHER' ? 'passive-students' : 'dashboard');
 
       if (userData.role === 'DEVELOPER') {
         const schoolsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schools`, {
@@ -169,21 +173,25 @@ export default function AdminPage() {
     );
   }
 
-  if (!userInfo || (userInfo.role !== 'ADMIN' && userInfo.role !== 'DEVELOPER')) {
+  if (!userInfo || (userInfo.role !== 'ADMIN' && userInfo.role !== 'DEVELOPER' && userInfo.role !== 'TEACHER')) {
     return null;
   }
 
-  const tabs = [
-    { id: 'dashboard' as TabType, label: 'Dashboard', icon: '📊' },
-    { id: 'books' as TabType, label: 'Kitaplar', icon: '📚' },
-    { id: 'categories' as TabType, label: 'Kategoriler', icon: '🏷️' },
-    { id: 'members' as TabType, label: 'Üyeler', icon: '👥' },
-    { id: 'approvals' as TabType, label: 'Onay Bekleyenler', icon: '⏳', badge: pendingUsers.length },
-    { id: 'overdue' as TabType, label: 'Gecikmeler ', icon: '⏰', badge: overdueLoans.length },
-    { id: 'reports' as TabType, label: 'Raporlar', icon: '📈' },
-    { id: 'activities' as TabType, label: 'Aktiviteler', icon: '🔔' },
-    { id: 'settings' as TabType, label: 'Ayarlar', icon: '⚙️' },
+  const isTeacher = userInfo?.role === 'TEACHER';
+  const allTabs = [
+    { id: 'dashboard' as TabType, label: 'Dashboard', icon: '📊', teacherVisible: false },
+    { id: 'books' as TabType, label: 'Kitaplar', icon: '📚', teacherVisible: false },
+    { id: 'categories' as TabType, label: 'Kategoriler', icon: '🏷️', teacherVisible: false },
+    { id: 'members' as TabType, label: 'Üyeler', icon: '👥', teacherVisible: true },
+    { id: 'passive-students' as TabType, label: 'Pasif Öğrenciler', icon: '👤', teacherVisible: true },
+    { id: 'borrow-on-behalf' as TabType, label: 'Ödünç Ver', icon: '📖', teacherVisible: true },
+    { id: 'approvals' as TabType, label: 'Onay Bekleyenler', icon: '⏳', badge: pendingUsers.length, teacherVisible: false },
+    { id: 'overdue' as TabType, label: 'Gecikmeler', icon: '⏰', badge: overdueLoans.length, teacherVisible: true },
+    { id: 'reports' as TabType, label: 'Raporlar', icon: '📈', teacherVisible: false },
+    { id: 'activities' as TabType, label: 'Aktiviteler', icon: '🔔', teacherVisible: false },
+    { id: 'settings' as TabType, label: 'Ayarlar', icon: '⚙️', teacherVisible: false },
   ];
+  const tabs = isTeacher ? allTabs.filter(t => t.teacherVisible) : allTabs;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: colors.bg, display: 'flex', flexDirection: 'column' }}>
@@ -278,6 +286,16 @@ export default function AdminPage() {
         {activeTab === 'reports' && (
           <AdminReports popularBooks={popularBooks} neverBorrowed={neverBorrowed}
             lowStock={lowStock} neverBorrowedMembers={neverBorrowedMembers}
+            userInfo={userInfo} selectedSchoolId={selectedSchoolId} getToken={getToken} />
+        )}
+
+        {activeTab === 'passive-students' && (
+          <AdminPassiveStudents
+            userInfo={userInfo} selectedSchoolId={selectedSchoolId} getToken={getToken} />
+        )}
+
+        {activeTab === 'borrow-on-behalf' && (
+          <AdminBorrowOnBehalf
             userInfo={userInfo} selectedSchoolId={selectedSchoolId} getToken={getToken} />
         )}
 

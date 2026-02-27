@@ -18,7 +18,7 @@ export class StatsService {
       totalLoansThisWeek,
     ] = await Promise.all([
       this.prisma.book.count({ where: { schoolId } }),
-      this.prisma.user.count({ where: { schoolId, role: 'MEMBER', status: 'APPROVED' } }),
+      this.prisma.user.count({ where: { schoolId, role: 'MEMBER', status: { in: ['APPROVED', 'PASSIVE'] } } }),
       this.prisma.loan.count({ where: { schoolId, status: 'ACTIVE' } }),
       this.prisma.loan.count({
         where: {
@@ -178,10 +178,10 @@ export class StatsService {
     });
   }
 
-  // Tüm üyeler - schoolId ile filtreleme (sadece APPROVED olanlar)
+  // Tüm üyeler - schoolId ile filtreleme (APPROVED ve PASSIVE olanlar)
   async getAllMembers(schoolId: string) {
     const members = await this.prisma.user.findMany({
-      where: { schoolId, status: 'APPROVED' },
+      where: { schoolId, status: { in: ['APPROVED', 'PASSIVE'] } },
       orderBy: { createdAt: 'desc' },
       include: {
         loans: {
@@ -200,7 +200,11 @@ export class StatsService {
         name: member.name,
         email: member.email,
         role: member.role,
+        status: member.status,
         isMainAdmin: member.isMainAdmin,
+        className: member.className,
+        section: member.section,
+        studentNumber: member.studentNumber,
         createdAt: member.createdAt,
         totalLoans: member.loans.length,
         activeLoans: activeLoans.length,
@@ -301,7 +305,7 @@ export class StatsService {
     const headers = ['Ad Soyad', 'E-posta', 'Öğrenci No', 'Sınıf', 'Şube', 'Rol', 'Toplam Ödünç', 'Kayıt Tarihi'];
     const rows = members.map(member => [
       this.escapeCSV(member.name),
-      member.email,
+      member.email || '',
       member.studentNumber || '',
       member.className || '',
       member.section || '',
@@ -337,7 +341,7 @@ export class StatsService {
 
       return [
         this.escapeCSV(loan.user.name),
-        loan.user.email,
+        loan.user.email || '',
         loan.user.studentNumber || '',
         this.escapeCSV(loan.book.title),
         this.escapeCSV(loan.book.author),
@@ -375,7 +379,7 @@ export class StatsService {
 
       return [
         this.escapeCSV(loan.user.name),
-        loan.user.email,
+        loan.user.email || '',
         loan.user.studentNumber || '',
         `${loan.user.className || ''}${loan.user.section ? '-' + loan.user.section : ''}`,
         this.escapeCSV(loan.book.title),
@@ -619,7 +623,7 @@ export class StatsService {
 
     const rows = members.map((member) => [
       this.escapeCSV(member.name),
-      member.email,
+      member.email || '',
       member.studentNumber || '',
       member.className || '',
       member.section || '',

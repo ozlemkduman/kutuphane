@@ -157,4 +157,23 @@ export interface ChartData {
   weeklyStats: { week: string; count: number }[];
 }
 
-export type TabType = 'dashboard' | 'books' | 'categories' | 'members' | 'approvals' | 'overdue' | 'reports' | 'activities' | 'settings';
+export interface PassiveStudent {
+  id: string;
+  name: string;
+  className: string | null;
+  section: string | null;
+  studentNumber: string | null;
+  activeLoans: number;
+  createdAt: string;
+}
+
+export interface SchoolStudent {
+  id: string;
+  name: string;
+  className: string | null;
+  section: string | null;
+  studentNumber: string | null;
+  status: 'APPROVED' | 'PASSIVE';
+}
+
+export type TabType = 'dashboard' | 'books' | 'categories' | 'members' | 'approvals' | 'overdue' | 'reports' | 'activities' | 'settings' | 'passive-students' | 'borrow-on-behalf';

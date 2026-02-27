@@ -7,4 +7,6 @@ export { AdminOverdue } from './AdminOverdue';
 export { AdminReports } from './AdminReports';
 export { AdminActivities } from './AdminActivities';
 export { AdminSettings } from './AdminSettings';
+export { AdminPassiveStudents } from './AdminPassiveStudents';
+export { AdminBorrowOnBehalf } from './AdminBorrowOnBehalf';
 export type { TabType } from './types';

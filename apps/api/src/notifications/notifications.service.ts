@@ -96,14 +96,14 @@ export class NotificationsService {
         });
         if (settings?.emailEnabled) {
           const daysLeft = Math.ceil((loan.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-          const sent = await this.emailService.sendDueSoonReminder(
+          const sent = loan.user.email ? await this.emailService.sendDueSoonReminder(
             loan.schoolId,
             loan.user.email,
             loan.user.name,
             loan.book.title,
             loan.dueDate,
             daysLeft,
-          );
+          ) : false;
           if (sent) {
             await this.prisma.notification.update({
               where: { id: notification.id },
@@ -162,14 +162,14 @@ export class NotificationsService {
 
           // E-posta gönder (ayarlar aktifse)
           if (settings?.emailEnabled) {
-            const sent = await this.emailService.sendOverdueReminder(
+            const sent = loan.user.email ? await this.emailService.sendOverdueReminder(
               loan.schoolId,
               loan.user.email,
               loan.user.name,
               loan.book.title,
               loan.dueDate,
               daysOverdue,
-            );
+            ) : false;
             if (sent) {
               await this.prisma.notification.update({
                 where: { id: notification.id },

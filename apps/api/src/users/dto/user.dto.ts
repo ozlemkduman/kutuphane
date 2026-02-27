@@ -96,3 +96,61 @@ export class UpdateUserStatusDto {
   @IsEnum(['APPROVED', 'REJECTED'], { message: 'Geçersiz durum' })
   status!: 'APPROVED' | 'REJECTED';
 }
+
+// Pasif öğrenci oluşturma
+export class CreatePassiveStudentDto {
+  @IsString({ message: 'İsim metin olmalıdır' })
+  @MinLength(2, { message: 'İsim en az 2 karakter olmalıdır' })
+  @MaxLength(100, { message: 'İsim en fazla 100 karakter olabilir' })
+  @Transform(({ value }) => sanitizeString(value))
+  name!: string;
+
+  @IsString({ message: 'Sınıf metin olmalıdır' })
+  @MinLength(1, { message: 'Sınıf boş olamaz' })
+  @MaxLength(10, { message: 'Sınıf en fazla 10 karakter olabilir' })
+  @Transform(({ value }) => sanitizeString(value))
+  className!: string;
+
+  @IsString({ message: 'Şube metin olmalıdır' })
+  @MinLength(1, { message: 'Şube boş olamaz' })
+  @MaxLength(10, { message: 'Şube en fazla 10 karakter olabilir' })
+  @Transform(({ value }) => sanitizeString(value)?.toUpperCase())
+  section!: string;
+
+  @IsString({ message: 'Okul numarası metin olmalıdır' })
+  @MinLength(1, { message: 'Okul numarası boş olamaz' })
+  @MaxLength(20, { message: 'Okul numarası en fazla 20 karakter olabilir' })
+  @Matches(/^[0-9]+$/, { message: 'Okul numarası sadece rakam içermelidir' })
+  studentNumber!: string;
+}
+
+// Pasif öğrenci güncelleme
+export class UpdatePassiveStudentDto {
+  @IsOptional()
+  @IsString({ message: 'İsim metin olmalıdır' })
+  @MinLength(2, { message: 'İsim en az 2 karakter olmalıdır' })
+  @MaxLength(100, { message: 'İsim en fazla 100 karakter olabilir' })
+  @Transform(({ value }) => sanitizeString(value))
+  name?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Sınıf metin olmalıdır' })
+  @MinLength(1, { message: 'Sınıf boş olamaz' })
+  @MaxLength(10, { message: 'Sınıf en fazla 10 karakter olabilir' })
+  @Transform(({ value }) => sanitizeString(value))
+  className?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Şube metin olmalıdır' })
+  @MinLength(1, { message: 'Şube boş olamaz' })
+  @MaxLength(10, { message: 'Şube en fazla 10 karakter olabilir' })
+  @Transform(({ value }) => sanitizeString(value)?.toUpperCase())
+  section?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Okul numarası metin olmalıdır' })
+  @MinLength(1, { message: 'Okul numarası boş olamaz' })
+  @MaxLength(20, { message: 'Okul numarası en fazla 20 karakter olabilir' })
+  @Matches(/^[0-9]+$/, { message: 'Okul numarası sadece rakam içermelidir' })
+  studentNumber?: string;
+}

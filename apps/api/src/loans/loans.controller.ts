@@ -1,7 +1,8 @@
-import { Controller, Post, Get, Param, UseGuards, Request, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, UseGuards, Request, BadRequestException } from '@nestjs/common';
 import { LoansService } from './loans.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
+import { TeacherOrAdminGuard } from '../auth/teacher-or-admin.guard';
 
 @Controller('loans')
 export class LoansController {
@@ -28,6 +29,40 @@ export class LoansController {
   @UseGuards(AuthGuard)
   async getMyLoans(@Request() req: any) {
     return this.loansService.getMyLoans(req.user.firebaseUid);
+  }
+
+  // ==================== ON-BEHALF ROUTES (BEFORE :id) ====================
+
+  // POST /api/loans/on-behalf/:bookId - Öğrenci adına kitap ödünç ver
+  @Post('on-behalf/:bookId')
+  @UseGuards(TeacherOrAdminGuard)
+  async borrowBookOnBehalf(
+    @Param('bookId') bookId: string,
+    @Body() data: { userId: string },
+    @Request() req: any,
+  ) {
+    const schoolId = req.user.schoolId;
+    if (!schoolId) {
+      throw new BadRequestException('Okul bilgisi bulunamadı');
+    }
+    if (!data.userId) {
+      throw new BadRequestException('Öğrenci ID gerekli');
+    }
+    return this.loansService.borrowBookOnBehalf(req.user.firebaseUid, data.userId, bookId, schoolId);
+  }
+
+  // POST /api/loans/on-behalf/:loanId/return - Öğrenci adına kitap iade et
+  @Post('on-behalf/:loanId/return')
+  @UseGuards(TeacherOrAdminGuard)
+  async returnBookOnBehalf(
+    @Param('loanId') loanId: string,
+    @Request() req: any,
+  ) {
+    const schoolId = req.user.schoolId;
+    if (!schoolId) {
+      throw new BadRequestException('Okul bilgisi bulunamadı');
+    }
+    return this.loansService.returnBookOnBehalf(req.user.firebaseUid, loanId, schoolId);
   }
 
   // ==================== DYNAMIC ROUTES LAST ====================

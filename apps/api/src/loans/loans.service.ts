@@ -318,6 +318,138 @@ export class LoansService {
     };
   }
 
+  // Vekalet ile kitap ödünç ver (öğretmen/admin tarafından)
+  async borrowBookOnBehalf(lenderFirebaseUid: string, targetUserId: string, bookId: string, schoolId: string) {
+    // 1. Ödünç veren kullanıcıyı doğrula
+    const lender = await this.prisma.user.findUnique({
+      where: { firebaseUid: lenderFirebaseUid },
+    });
+    if (!lender) {
+      throw new NotFoundException('Yetkili kullanıcı bulunamadı');
+    }
+    if (lender.role !== 'TEACHER' && lender.role !== 'ADMIN' && lender.role !== 'DEVELOPER') {
+      throw new BadRequestException('Bu işlem için yetkiniz yok');
+    }
+
+    // 2. Öğrenciyi DB ID ile bul
+    const student = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+    });
+    if (!student) {
+      throw new NotFoundException('Öğrenci bulunamadı');
+    }
+    if (student.schoolId !== schoolId) {
+      throw new BadRequestException('Öğrenci bu okula ait değil');
+    }
+    if (student.status !== 'APPROVED' && student.status !== 'PASSIVE') {
+      throw new BadRequestException('Öğrencinin durumu ödünç almaya uygun değil');
+    }
+
+    // 3. Okul ayarlarını al
+    const settings = await this.getSchoolSettings(schoolId);
+
+    // 4. Aktif ödünç sayısını kontrol et
+    const activeLoans = await this.prisma.loan.count({
+      where: { userId: student.id, status: 'ACTIVE' },
+    });
+    if (activeLoans >= settings.maxLoans) {
+      throw new BadRequestException(`Bu öğrenci en fazla ${settings.maxLoans} kitap ödünç alabilir`);
+    }
+
+    // 5. Kitap kontrolü
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+    });
+    if (!book || book.schoolId !== schoolId) {
+      throw new NotFoundException('Kitap bulunamadı');
+    }
+    if (book.available <= 0) {
+      throw new BadRequestException('Bu kitap şu anda mevcut değil');
+    }
+
+    // 6. Aynı kitabı zaten ödünç almış mı
+    const existingLoan = await this.prisma.loan.findFirst({
+      where: { userId: student.id, bookId, status: 'ACTIVE' },
+    });
+    if (existingLoan) {
+      throw new BadRequestException('Bu öğrenci bu kitabı zaten ödünç almış');
+    }
+
+    // 7. İade tarihi
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + settings.loanDays);
+
+    // 8. Transaction ile ödünç
+    const loan = await this.prisma.$transaction(async (tx) => {
+      await tx.book.update({
+        where: { id: bookId },
+        data: { available: { decrement: 1 } },
+      });
+
+      return tx.loan.create({
+        data: {
+          userId: student.id,
+          bookId,
+          dueDate,
+          status: 'ACTIVE',
+          schoolId,
+          lentById: lender.id,
+        },
+        include: {
+          book: true,
+          user: { select: { id: true, name: true, className: true, section: true, studentNumber: true, status: true } },
+        },
+      });
+    });
+
+    return loan;
+  }
+
+  // Vekalet ile kitap iade (öğretmen/admin tarafından)
+  async returnBookOnBehalf(lenderFirebaseUid: string, loanId: string, schoolId: string) {
+    const lender = await this.prisma.user.findUnique({
+      where: { firebaseUid: lenderFirebaseUid },
+    });
+    if (!lender) {
+      throw new NotFoundException('Yetkili kullanıcı bulunamadı');
+    }
+
+    const loan = await this.prisma.loan.findFirst({
+      where: { id: loanId, schoolId, status: 'ACTIVE' },
+      include: { book: true },
+    });
+    if (!loan) {
+      throw new NotFoundException('Ödünç kaydı bulunamadı');
+    }
+
+    // Ceza hesapla
+    const settings = await this.getSchoolSettings(schoolId);
+    const fineAmount = this.calculateFine(loan.dueDate, settings.finePerDay, settings.maxFine);
+
+    // Transaction ile iade
+    const updatedLoan = await this.prisma.$transaction(async (tx) => {
+      await tx.book.update({
+        where: { id: loan.bookId },
+        data: { available: { increment: 1 } },
+      });
+
+      return tx.loan.update({
+        where: { id: loanId },
+        data: {
+          status: 'RETURNED',
+          returnedAt: new Date(),
+          fineAmount,
+          lentById: lender.id,
+        },
+        include: { book: true },
+      });
+    });
+
+    await this.processReservations(loan.bookId, schoolId);
+
+    return updatedLoan;
+  }
+
   // Admin: Cezayı ödendi olarak işaretle
   async markFinePaid(loanId: string, schoolId: string) {
     const loan = await this.prisma.loan.findFirst({
