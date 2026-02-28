@@ -26,6 +26,7 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const [csvImporting, setCsvImporting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const toast = useToast();
 
   useEffect(() => {
@@ -171,6 +172,16 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
     }
   };
 
+  const filteredStudents = searchTerm.trim()
+    ? students.filter(s => {
+        const q = searchTerm.toLowerCase();
+        return s.name.toLowerCase().includes(q) ||
+          s.className?.toLowerCase().includes(q) ||
+          s.section?.toLowerCase().includes(q) ||
+          s.studentNumber?.includes(q);
+      })
+    : students;
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: spacing['2xl'] }}>
@@ -228,6 +239,19 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
         </p>
       </Card>
 
+      {/* Search/Filter */}
+      {students.length > 0 && (
+        <div style={{ marginBottom: spacing.lg }}>
+          <Input
+            label=""
+            type="text"
+            placeholder="Ogrenci adi, sinifi, subesi veya numarasi ile filtrele..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      )}
+
       {/* Students Table */}
       <Card>
         <div style={{ overflowX: 'auto' }}>
@@ -235,6 +259,10 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
             <div style={{ textAlign: 'center', padding: spacing['2xl'] }}>
               <p style={{ color: colors.gray, fontSize: '16px' }}>Henuz pasif ogrenci eklenmemis</p>
               <Button onClick={() => { resetForm(); setShowForm(true); }} style={{ marginTop: spacing.md }}>+ Ilk Ogrenciyi Ekle</Button>
+            </div>
+          ) : filteredStudents.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: spacing['2xl'] }}>
+              <p style={{ color: colors.gray, fontSize: '14px' }}>Aramayla eslesen ogrenci bulunamadi</p>
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -250,7 +278,7 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
                 </tr>
               </thead>
               <tbody>
-                {students.map((student) => (
+                {filteredStudents.map((student) => (
                   <tr key={student.id} style={{ borderTop: `1px solid ${colors.border}` }}>
                     <td style={{ padding: spacing.lg }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
