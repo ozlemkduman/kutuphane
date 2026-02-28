@@ -137,7 +137,7 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
     }
   };
 
-  // Filter students
+  // Filter students (show all when no search)
   const filteredStudents = studentSearch.trim()
     ? students.filter(s => {
         const search = studentSearch.toLowerCase();
@@ -145,7 +145,7 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
           s.studentNumber?.includes(search) ||
           s.className?.toLowerCase().includes(search);
       })
-    : [];
+    : students;
 
   // Filter books
   const filteredBooks = bookSearch.trim()
@@ -189,50 +189,46 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
             <Button variant="ghost" onClick={() => { setSelectedStudent(null); setStudentLoans([]); }}>Degistir</Button>
           </div>
         ) : (
-          <div style={{ position: 'relative' }}>
+          <div>
             <Input
               label=""
               type="text"
-              placeholder="Ogrenci adi, numarasi veya sinifi ile arayiniz..."
+              placeholder="Ogrenci adi, numarasi veya sinifi ile filtrele..."
               value={studentSearch}
               onChange={(e) => setStudentSearch(e.target.value)}
             />
-            {filteredStudents.length > 0 && (
-              <div style={{
-                position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10,
-                backgroundColor: colors.card, border: `1px solid ${colors.border}`,
-                borderRadius: borderRadius.md, maxHeight: '300px', overflowY: 'auto',
-                marginTop: spacing.xs,
-              }}>
-                {filteredStudents.map((student) => (
-                  <button
-                    key={student.id}
-                    onClick={() => handleSelectStudent(student)}
-                    style={{
-                      width: '100%', padding: spacing.md, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      border: 'none', borderBottom: `1px solid ${colors.border}`,
-                      backgroundColor: 'transparent', color: colors.white, cursor: 'pointer',
-                      textAlign: 'left',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = colors.bg; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-                  >
-                    <div>
-                      <span style={{ fontWeight: 600 }}>{student.name}</span>
-                      <span style={{ color: colors.gray, fontSize: '13px', marginLeft: spacing.sm }}>
-                        {student.className}-{student.section} | No: {student.studentNumber}
-                      </span>
-                    </div>
-                    <Badge variant={student.status === 'PASSIVE' ? 'warning' : 'success'} style={{ fontSize: '10px' }}>
-                      {student.status === 'PASSIVE' ? 'Pasif' : 'Aktif'}
-                    </Badge>
-                  </button>
-                ))}
-              </div>
-            )}
-            {studentSearch.trim() && filteredStudents.length === 0 && (
-              <p style={{ color: colors.gray, fontSize: '13px', marginTop: spacing.sm }}>Ogrenci bulunamadi</p>
-            )}
+            <div style={{
+              backgroundColor: colors.card, border: `1px solid ${colors.border}`,
+              borderRadius: borderRadius.md, maxHeight: '300px', overflowY: 'auto',
+              marginTop: spacing.sm,
+            }}>
+              {filteredStudents.length > 0 ? filteredStudents.map((student) => (
+                <button
+                  key={student.id}
+                  onClick={() => handleSelectStudent(student)}
+                  style={{
+                    width: '100%', padding: spacing.md, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    border: 'none', borderBottom: `1px solid ${colors.border}`,
+                    backgroundColor: 'transparent', color: colors.white, cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = colors.bg; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                >
+                  <div>
+                    <span style={{ fontWeight: 600 }}>{student.name}</span>
+                    <span style={{ color: colors.gray, fontSize: '13px', marginLeft: spacing.sm }}>
+                      {student.className}-{student.section} | No: {student.studentNumber}
+                    </span>
+                  </div>
+                  <Badge variant={student.status === 'PASSIVE' ? 'warning' : 'success'} style={{ fontSize: '10px' }}>
+                    {student.status === 'PASSIVE' ? 'Pasif' : 'Aktif'}
+                  </Badge>
+                </button>
+              )) : (
+                <p style={{ color: colors.gray, fontSize: '13px', padding: spacing.md, margin: 0 }}>Ogrenci bulunamadi</p>
+              )}
+            </div>
           </div>
         )}
       </Card>
