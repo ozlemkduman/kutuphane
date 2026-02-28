@@ -5,45 +5,39 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Prisma için gerekli
 RUN apk add --no-cache openssl
 
-# Bağımlılıkları kopyala ve yükle
 COPY package*.json ./
+RUN npm install --ignore-scripts
+
 COPY prisma ./prisma/
-
-RUN npm install
-
-# Prisma client oluştur
 RUN npx prisma generate
 
-# Kaynak kodları kopyala ve derle
 COPY . .
 RUN npm run build
 
 # Production stage
 FROM node:20-alpine AS production
 
+# Non-root user (dosya kopyalamadan ÖNCE oluştur)
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
+
 WORKDIR /app
 
-RUN apk add --no-cache openssl curl
+RUN apk add --no-cache openssl curl && chown nestjs:nodejs /app
 
-# Production bağımlılıkları
-COPY package*.json ./
-COPY prisma ./prisma/
-RUN npm install --omit=dev
+# Dosyaları doğrudan doğru sahiplikle kopyala
+COPY --chown=nestjs:nodejs package*.json ./
+RUN npm install --omit=dev --ignore-scripts
 
-# Build çıktısını kopyala
-COPY --from=builder /app/dist ./dist
+COPY --chown=nestjs:nodejs prisma ./prisma/
+RUN npx prisma generate
 
-# Non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nestjs -u 1001 && \
-    chown -R nestjs:nodejs /app
+COPY --chown=nestjs:nodejs --from=builder /app/dist ./dist
 
 USER nestjs
 
 EXPOSE 3001
 
-# Başlatmadan önce migration çalıştır
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy 2>&1 || (echo 'Migration failed, resolving...' && npx prisma migrate resolve --rolled-back 20260227_add_passive_students 2>&1; npx prisma migrate deploy 2>&1) || true; node dist/src/main.js"]

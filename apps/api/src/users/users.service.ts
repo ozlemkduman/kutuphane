@@ -168,7 +168,15 @@ export class UsersService {
       throw new BadRequestException('Bu öğrencinin aktif ödünçleri var, silinemez');
     }
 
-    return this.prisma.user.delete({ where: { id } });
+    // İade edilmiş ödünç kayıtlarını sil, sonra öğrenciyi sil
+    await this.prisma.$transaction([
+      this.prisma.loan.deleteMany({ where: { userId: id } }),
+      this.prisma.favorite.deleteMany({ where: { userId: id } }),
+      this.prisma.reservation.deleteMany({ where: { userId: id } }),
+      this.prisma.user.delete({ where: { id } }),
+    ]);
+
+    return { message: 'Pasif öğrenci silindi' };
   }
 
   // CSV parse et (öğrenci importu için)
