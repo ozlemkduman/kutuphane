@@ -32,36 +32,42 @@ const XIcon = () => (
 
 export default function PendingApprovalPage() {
   const router = useRouter();
-  const { user, profile, loading: authLoading, refreshProfile, signOut } = useAuth();
+  const { user, profile, loading: authLoading, profileLoading, refreshProfile, signOut } = useAuth();
   const [checking, setChecking] = useState(false);
 
   // Redirect based on status
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading || profileLoading) return;
+
+    if (!user) {
       router.push('/login');
       return;
     }
 
-    if (!authLoading && profile) {
-      // If approved, redirect to books
-      if (profile.status === 'APPROVED') {
-        router.push('/books');
-        return;
-      }
-
-      // If no school selected, redirect to school selection
-      if (!profile.schoolId && profile.role === 'MEMBER') {
-        router.push('/onboarding/select-school');
-        return;
-      }
-
-      // DEVELOPER and ADMIN don't need approval
-      if (profile.role !== 'MEMBER') {
-        router.push(profile.role === 'DEVELOPER' ? '/developer' : '/books');
-        return;
-      }
+    // No DB profile → onboarding
+    if (!profile) {
+      router.push('/onboarding');
+      return;
     }
-  }, [authLoading, user, profile, router]);
+
+    // If approved, redirect to books
+    if (profile.status === 'APPROVED') {
+      router.push('/books');
+      return;
+    }
+
+    // If no school selected, redirect to onboarding
+    if (!profile.schoolId && (profile.role === 'MEMBER' || profile.role === 'TEACHER')) {
+      router.push('/onboarding');
+      return;
+    }
+
+    // DEVELOPER and ADMIN don't need approval
+    if (profile.role !== 'MEMBER' && profile.role !== 'TEACHER') {
+      router.push(profile.role === 'DEVELOPER' ? '/developer' : '/books');
+      return;
+    }
+  }, [authLoading, profileLoading, user, profile, router]);
 
   const handleCheckStatus = async () => {
     setChecking(true);
@@ -75,7 +81,7 @@ export default function PendingApprovalPage() {
   };
 
   // Loading state
-  if (authLoading) {
+  if (authLoading || profileLoading) {
     return (
       <div
         style={{
@@ -111,8 +117,8 @@ export default function PendingApprovalPage() {
     if (!profile) {
       return {
         icon: <ClockIcon />,
-        title: 'Kayit Isleniyor',
-        message: 'Kaydiniz isleniyor, lutfen bekleyin...',
+        title: 'Yönlendiriliyor...',
+        message: '',
         color: colors.warning,
       };
     }
@@ -121,22 +127,22 @@ export default function PendingApprovalPage() {
       case 'APPROVED':
         return {
           icon: <CheckIcon />,
-          title: 'Onaylandi!',
-          message: 'Hesabiniz onaylandi. Sisteme giris yapabilirsiniz.',
+          title: 'Onaylandı!',
+          message: 'Hesabınız onaylandı. Sisteme giriş yapabilirsiniz.',
           color: colors.success,
         };
       case 'REJECTED':
         return {
           icon: <XIcon />,
-          title: 'Basvuru Reddedildi',
-          message: 'Uzgunuz, okul yoneticiniz basvurunuzu onaylamadi.',
+          title: 'Başvuru Reddedildi',
+          message: 'Üzgünüz, okul yöneticiniz başvurunuzu onaylamadı.',
           color: colors.error,
         };
       default:
         return {
           icon: <ClockIcon />,
           title: 'Onay Bekleniyor',
-          message: 'Basvurunuz okul yoneticisi tarafindan inceleniyor.',
+          message: 'Başvurunuz okul yöneticisi tarafından inceleniyor.',
           color: colors.warning,
         };
     }
@@ -240,7 +246,7 @@ export default function PendingApprovalPage() {
             )}
             {profile.className && (
               <p style={{ color: colors.gray, fontSize: '14px', marginBottom: spacing.sm }}>
-                <strong style={{ color: colors.white }}>Sinif:</strong> {profile.className}-{profile.section}
+                <strong style={{ color: colors.white }}>Sınıf:</strong> {profile.className}{profile.section ? `-${profile.section}` : ''}
               </p>
             )}
             {profile.studentNumber && (
@@ -283,7 +289,7 @@ export default function PendingApprovalPage() {
             onClick={handleSignOut}
             fullWidth
           >
-            Cikis Yap
+            Çıkış Yap
           </Button>
         </div>
 
@@ -296,8 +302,8 @@ export default function PendingApprovalPage() {
               marginTop: spacing.xl,
             }}
           >
-            Onay sureci genellikle 1-2 is gunu icinde tamamlanir.
-            Sorulariniz icin okul yoneticinizle iletisime gecebilirsiniz.
+            Onay süreci genellikle 1-2 iş günü içinde tamamlanır.
+            Sorularınız için okul yöneticinizle iletişime geçebilirsiniz.
           </p>
         )}
 
@@ -320,7 +326,7 @@ export default function PendingApprovalPage() {
                 marginBottom: spacing.sm,
               }}
             >
-              Neden reddedilmis olabilir?
+              Neden reddedilmiş olabilir?
             </h4>
             <ul
               style={{
@@ -331,9 +337,9 @@ export default function PendingApprovalPage() {
                 lineHeight: 1.6,
               }}
             >
-              <li>Girdiginiz ogrenci bilgileri hatali olabilir</li>
-              <li>Bu okul numarasi baska bir hesapta kullaniliyor olabilir</li>
-              <li>Okul kayitlarinizda bir uyusmazlik olabilir</li>
+              <li>Girdiğiniz öğrenci bilgileri hatalı olabilir</li>
+              <li>Bu okul numarası başka bir hesapta kullanılıyor olabilir</li>
+              <li>Okul kayıtlarınızda bir uyuşmazlık olabilir</li>
             </ul>
             <p
               style={{
@@ -343,7 +349,7 @@ export default function PendingApprovalPage() {
                 marginBottom: 0,
               }}
             >
-              Lutfen okul yoneticinizle iletisime gecin veya dogru bilgilerle yeni bir hesap olusturun.
+              Lütfen okul yöneticinizle iletişime geçin veya doğru bilgilerle yeni bir hesap oluşturun.
             </p>
           </div>
         )}

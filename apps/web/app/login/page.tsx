@@ -1,7 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  updateProfile,
+} from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -36,6 +42,13 @@ const LockIcon = () => (
   </svg>
 );
 
+// User Icon Component
+const UserIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
+  </svg>
+);
+
 // Error messages mapping
 const getErrorMessage = (errorCode: string): string => {
   const errorMessages: Record<string, string> = {
@@ -47,38 +60,45 @@ const getErrorMessage = (errorCode: string): string => {
     'auth/network-request-failed': 'İnternet bağlantınızı kontrol edin.',
     'auth/invalid-credential': 'E-posta veya şifre hatalı.',
     'auth/popup-closed-by-user': 'Google giriş penceresi kapatıldı.',
+    'auth/email-already-in-use': 'Bu e-posta adresi zaten kullanımda. Giriş yapmayı deneyin.',
+    'auth/weak-password': 'Şifre en az 6 karakter olmalıdır.',
   };
 
-  return errorMessages[errorCode] || 'Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.';
+  return errorMessages[errorCode] || 'Bir hata oluştu. Lütfen tekrar deneyin.';
 };
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, loading: authLoading, profile } = useAuth();
+  const { user, loading: authLoading, profile, profileLoading } = useAuth();
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already logged in (veya mobil Google redirect sonrasi)
+  // Redirect based on auth state
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || profileLoading) return;
 
     if (user && profile) {
-      localStorage.removeItem('googleLoginPending');
       if (profile.role === 'MEMBER' || profile.role === 'TEACHER') {
         if (profile.status === 'REJECTED') {
           auth.signOut();
           return;
         }
         if (profile.status === 'PENDING') { router.replace('/pending-approval'); return; }
-        if (!profile.schoolId) { router.replace('/onboarding/select-school'); return; }
+        if (!profile.schoolId) { router.replace('/onboarding'); return; }
       }
       if (profile.role === 'DEVELOPER') { router.replace('/developer'); return; }
       router.replace('/books');
     }
 
-  }, [authLoading, user, profile, router]);
+    // Firebase user exists but no DB profile → onboarding
+    if (user && !profile && !profileLoading) {
+      router.replace('/onboarding');
+    }
+  }, [authLoading, profileLoading, user, profile, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,50 +106,33 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      const token = await result.user.getIdToken();
-
-      // Check user role for redirect
-      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (userRes.ok) {
-        const userData = await userRes.json();
-
-        // MEMBER'lar icin durum kontrolu
-        if (userData.role === 'MEMBER') {
-          // Reddedilmis kullanicilar giris yapamasin
-          if (userData.status === 'REJECTED') {
-            setError('Basvurunuz okul yoneticiniz tarafindan reddedildi. Detaylar icin okul yoneticinizle iletisime gecin.');
-            return;
-          }
-          // Onay bekleyenler pending sayfasina
-          if (userData.status === 'PENDING') {
-            router.push('/pending-approval');
-            return;
-          }
-          if (!userData.schoolId) {
-            router.push('/onboarding/select-school');
-            return;
-          }
-        }
-
-        // DEVELOPER ise developer sayfasina
-        if (userData.role === 'DEVELOPER') {
-          router.push('/developer');
-          return;
-        }
-
-        router.push('/books');
-      } else if (userRes.status === 404) {
-        // Kullanici kayitli degil - kayit sayfasina yonlendir
-        router.push('/register');
-      } else {
-        router.push('/books');
-      }
+      await signInWithEmailAndPassword(auth, email, password);
+      // AuthContext onAuthStateChanged will handle the redirect
     } catch (err: any) {
       console.error('Login error:', err);
+      setError(err.code ? getErrorMessage(err.code) : `Hata: ${err.message || JSON.stringify(err)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!name.trim()) {
+      setError('Ad soyad gereklidir.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(result.user, { displayName: name.trim() });
+      // AuthContext onAuthStateChanged will detect no DB profile → redirect to /onboarding
+    } catch (err: any) {
+      console.error('Register error:', err);
       setError(err.code ? getErrorMessage(err.code) : `Hata: ${err.message || JSON.stringify(err)}`);
     } finally {
       setLoading(false);
@@ -142,41 +145,15 @@ export default function LoginPage() {
 
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-
-      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (userRes.ok) {
-        const userData = await userRes.json();
-        if (userData.role === 'MEMBER' || userData.role === 'TEACHER') {
-          if (userData.status === 'REJECTED') {
-            await auth.signOut();
-            setError('Basvurunuz okul yoneticiniz tarafindan reddedildi.');
-            return;
-          }
-          if (userData.status === 'PENDING') { router.push('/pending-approval'); return; }
-          if (!userData.schoolId) { router.push('/onboarding/select-school'); return; }
-        }
-        if (userData.role === 'DEVELOPER') { router.push('/developer'); return; }
-        router.push('/books');
-      } else if (userRes.status === 401 || userRes.status === 404) {
-        // Kullanici kayitli degil - kayit sayfasina yonlendir
-        await auth.signOut();
-        setError('Bu Google hesabi ile kayitli bir kullanici bulunamadi. Kayit sayfasina yonlendiriliyorsunuz...');
-        setTimeout(() => router.push('/register'), 2000);
-      } else {
-        const errText = await userRes.text().catch(() => '');
-        await auth.signOut();
-        setError(`Giris hatasi (${userRes.status}): ${errText || 'Bilinmeyen hata'}`);
-      }
+      await signInWithPopup(auth, provider);
+      // AuthContext onAuthStateChanged will handle:
+      // - If DB profile exists → redirect based on status
+      // - If no DB profile → redirect to /onboarding
     } catch (err: any) {
       if (err.code === 'auth/popup-closed-by-user') {
-        setError('Google giris penceresi kapatildi.');
+        setError('Google giriş penceresi kapatıldı.');
       } else {
-        setError(`Google giris hatasi: ${err.message || 'Bilinmeyen hata'}`);
+        setError(`Google giriş hatası: ${err.message || 'Bilinmeyen hata'}`);
       }
     } finally {
       setLoading(false);
@@ -184,9 +161,7 @@ export default function LoginPage() {
   };
 
   // Show loading while checking auth state or redirecting
-  // authLoading: Firebase auth kontrolü yapılıyor
-  // user && profile: Kullanıcı giriş yapmış, redirect olacak
-  const isRedirecting = !authLoading && user && profile;
+  const isRedirecting = !authLoading && user && (profile || (!profile && !profileLoading));
 
   if (authLoading || isRedirecting) {
     return (
@@ -223,6 +198,8 @@ export default function LoginPage() {
       </div>
     );
   }
+
+  const isLogin = mode === 'login';
 
   return (
     <div
@@ -282,7 +259,7 @@ export default function LoginPage() {
             WebkitTextFillColor: 'transparent',
           }}
         >
-          Giriş Yap
+          {isLogin ? 'Giriş Yap' : 'Hesap Oluştur'}
         </h1>
 
         {/* Error Alert */}
@@ -294,7 +271,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Google Login Button */}
+        {/* Google Button */}
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
@@ -328,10 +305,10 @@ export default function LoginPage() {
               e.currentTarget.style.borderColor = colors.border;
             }
           }}
-          aria-label="Google ile giriş yap"
+          aria-label="Google ile devam et"
         >
           <GoogleIcon />
-          Google ile Giriş Yap
+          Google ile Devam Et
         </button>
 
         {/* Divider */}
@@ -343,33 +320,29 @@ export default function LoginPage() {
           }}
           role="separator"
         >
-          <div
-            style={{
-              flex: 1,
-              height: '1px',
-              backgroundColor: colors.border,
-            }}
-          />
-          <span
-            style={{
-              padding: `0 ${spacing.lg}`,
-              color: colors.gray,
-              fontSize: '14px',
-            }}
-          >
+          <div style={{ flex: 1, height: '1px', backgroundColor: colors.border }} />
+          <span style={{ padding: `0 ${spacing.lg}`, color: colors.gray, fontSize: '14px' }}>
             veya e-posta ile
           </span>
-          <div
-            style={{
-              flex: 1,
-              height: '1px',
-              backgroundColor: colors.border,
-            }}
-          />
+          <div style={{ flex: 1, height: '1px', backgroundColor: colors.border }} />
         </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleLogin} id="login-form">
+        {/* Form */}
+        <form onSubmit={isLogin ? handleLogin : handleRegister} id="auth-form">
+          {/* Name field - only in register mode */}
+          {!isLogin && (
+            <Input
+              type="text"
+              label="Ad Soyad"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Adınız Soyadınız"
+              leftIcon={<UserIcon />}
+              required
+              autoComplete="name"
+            />
+          )}
+
           <Input
             type="email"
             label="E-posta"
@@ -389,35 +362,40 @@ export default function LoginPage() {
             placeholder="••••••••"
             leftIcon={<LockIcon />}
             required
-            autoComplete="current-password"
+            autoComplete={isLogin ? 'current-password' : 'new-password'}
           />
 
-          {/* Forgot Password Link */}
-          <div
-            style={{
-              textAlign: 'right',
-              marginBottom: spacing.lg,
-              marginTop: `-${spacing.sm}`,
-            }}
-          >
-            <Link
-              href="/forgot-password"
+          {/* Forgot Password Link - only in login mode */}
+          {isLogin && (
+            <div
               style={{
-                color: colors.gray,
-                fontSize: '14px',
-                textDecoration: 'none',
-                transition: `color ${transitions.fast}`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = colors.primary;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = colors.gray;
+                textAlign: 'right',
+                marginBottom: spacing.lg,
+                marginTop: `-${spacing.sm}`,
               }}
             >
-              Şifremi unuttum
-            </Link>
-          </div>
+              <Link
+                href="/forgot-password"
+                style={{
+                  color: colors.gray,
+                  fontSize: '14px',
+                  textDecoration: 'none',
+                  transition: `color ${transitions.fast}`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = colors.primary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = colors.gray;
+                }}
+              >
+                Şifremi unuttum
+              </Link>
+            </div>
+          )}
+
+          {/* Add some spacing in register mode where there's no forgot password link */}
+          {!isLogin && <div style={{ height: spacing.sm }} />}
 
           <Button
             type="submit"
@@ -429,11 +407,11 @@ export default function LoginPage() {
               boxShadow: shadows.glow,
             }}
           >
-            Giriş Yap
+            {isLogin ? 'Giriş Yap' : 'Hesap Oluştur'}
           </Button>
         </form>
 
-        {/* Register Link */}
+        {/* Toggle Link */}
         <p
           style={{
             textAlign: 'center',
@@ -442,13 +420,20 @@ export default function LoginPage() {
             fontSize: '15px',
           }}
         >
-          Hesabın yok mu?{' '}
-          <Link
-            href="/register"
+          {isLogin ? 'Hesabın yok mu? ' : 'Zaten hesabın var mı? '}
+          <button
+            onClick={() => {
+              setMode(isLogin ? 'register' : 'login');
+              setError('');
+            }}
             style={{
+              background: 'none',
+              border: 'none',
               color: colors.primaryLight,
               fontWeight: 600,
-              textDecoration: 'none',
+              cursor: 'pointer',
+              fontSize: '15px',
+              padding: 0,
               transition: `color ${transitions.fast}`,
             }}
             onMouseEnter={(e) => {
@@ -458,8 +443,8 @@ export default function LoginPage() {
               e.currentTarget.style.color = colors.primaryLight;
             }}
           >
-            Kayıt Ol
-          </Link>
+            {isLogin ? 'Hesap Oluştur' : 'Giriş Yap'}
+          </button>
         </p>
       </div>
     </div>

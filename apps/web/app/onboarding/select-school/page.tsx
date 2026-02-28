@@ -51,7 +51,7 @@ export default function SelectSchoolPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState('');
 
-  // Ogrenci bilgileri
+  // Öğrenci bilgileri
   const [className, setClassName] = useState('');
   const [section, setSection] = useState('');
   const [studentNumber, setStudentNumber] = useState('');
@@ -121,23 +121,23 @@ export default function SelectSchoolPage() {
 
   const validateForm = (): boolean => {
     if (!selectedSchool) {
-      setError('Lutfen bir okul secin');
+      setError('Lütfen bir okul seçin');
       return false;
     }
     if (!className.trim()) {
-      setError('Sinif bilgisi zorunludur');
+      setError('Sınıf bilgisi zorunludur');
       return false;
     }
     if (!section.trim()) {
-      setError('Sube bilgisi zorunludur');
+      setError('Şube bilgisi zorunludur');
       return false;
     }
     if (!studentNumber.trim()) {
-      setError('Okul numarasi zorunludur');
+      setError('Okul numarası zorunludur');
       return false;
     }
     if (!/^[0-9]+$/.test(studentNumber.trim())) {
-      setError('Okul numarasi sadece rakam icermelidir');
+      setError('Okul numarası sadece rakam içermelidir');
       return false;
     }
     return true;
@@ -509,7 +509,7 @@ export default function SelectSchoolPage() {
                 marginTop: 0,
               }}
             >
-              Ogrenci Bilgileri
+              Öğrenci Bilgileri
             </h3>
             <p
               style={{
@@ -518,7 +518,7 @@ export default function SelectSchoolPage() {
                 marginBottom: spacing.lg,
               }}
             >
-              Okul yoneticinizin sizi onaylayabilmesi icin asagidaki bilgileri doldurun.
+              Okul yöneticinizin sizi onaylayabilmesi için aşağıdaki bilgileri doldurun.
             </p>
 
             <div
@@ -530,7 +530,7 @@ export default function SelectSchoolPage() {
             >
               <Input
                 type="text"
-                label="Sinif"
+                label="Sınıf"
                 value={className}
                 onChange={(e) => setClassName(e.target.value)}
                 placeholder="9, 10, 11..."
@@ -538,7 +538,7 @@ export default function SelectSchoolPage() {
               />
               <Input
                 type="text"
-                label="Sube"
+                label="Şube"
                 value={section}
                 onChange={(e) => setSection(e.target.value)}
                 placeholder="A, B, C..."
@@ -546,7 +546,7 @@ export default function SelectSchoolPage() {
               />
               <Input
                 type="text"
-                label="Okul Numarasi"
+                label="Okul Numarası"
                 value={studentNumber}
                 onChange={(e) => setStudentNumber(e.target.value)}
                 placeholder="12345"

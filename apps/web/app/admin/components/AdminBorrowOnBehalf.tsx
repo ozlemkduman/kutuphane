@@ -53,7 +53,7 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
       if (studentsRes.ok) setStudents(await studentsRes.json());
       if (booksRes.ok) setBooks(await booksRes.json());
     } catch {
-      toast.error('Veriler yuklenemedi');
+      toast.error('Veriler yüklenemedi');
     } finally {
       setLoading(false);
     }
@@ -85,13 +85,13 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
     setBorrowing(true);
     try {
       const token = await getToken();
-      if (!token) { toast.error('Oturum hatasi'); return; }
+      if (!token) { toast.error('Oturum hatası'); return; }
       const headers = getJsonHeaders(token, selectedSchoolId, userInfo?.role);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/loans/on-behalf/${bookId}`, {
         method: 'POST', headers, body: JSON.stringify({ userId: selectedStudent.id }),
       });
       if (res.ok) {
-        toast.success('Kitap odunc verildi');
+        toast.success('Kitap ödünç verildi');
         await fetchStudentLoans(selectedStudent.id);
         // Refresh books for updated availability
         const booksRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/books`, {
@@ -100,10 +100,10 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
         if (booksRes.ok) setBooks(await booksRes.json());
       } else {
         const error = await res.json();
-        toast.error(error.message || 'Odunc verilemedi');
+        toast.error(error.message || 'Ödünç verilemedi');
       }
     } catch {
-      toast.error('Bir hata olustu');
+      toast.error('Bir hata oluştu');
     } finally {
       setBorrowing(false);
     }
@@ -113,7 +113,7 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
     setReturning(loanId);
     try {
       const token = await getToken();
-      if (!token) { toast.error('Oturum hatasi'); return; }
+      if (!token) { toast.error('Oturum hatası'); return; }
       const headers = getJsonHeaders(token, selectedSchoolId, userInfo?.role);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/loans/on-behalf/${loanId}/return`, {
         method: 'POST', headers,
@@ -128,10 +128,10 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
         if (booksRes.ok) setBooks(await booksRes.json());
       } else {
         const error = await res.json();
-        toast.error(error.message || 'Iade edilemedi');
+        toast.error(error.message || 'İade edilemedi');
       }
     } catch {
-      toast.error('Bir hata olustu');
+      toast.error('Bir hata oluştu');
     } finally {
       setReturning(null);
     }
@@ -160,18 +160,18 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: spacing['2xl'] }}>
-        <p style={{ color: colors.gray }}>Yukleniyor...</p>
+        <p style={{ color: colors.gray }}>Yükleniyor...</p>
       </div>
     );
   }
 
   return (
     <div>
-      <h2 style={{ color: colors.white, fontSize: '24px', marginBottom: spacing.xl }}>Ogrenci Adina Odunc Ver</h2>
+      <h2 style={{ color: colors.white, fontSize: '24px', marginBottom: spacing.xl }}>Öğrenci Adına Ödünç Ver</h2>
 
       {/* Step 1: Student Selection */}
       <Card style={{ marginBottom: spacing.xl, padding: spacing.xl }}>
-        <h3 style={{ color: colors.white, marginTop: 0, marginBottom: spacing.lg }}>1. Ogrenci Sec</h3>
+        <h3 style={{ color: colors.white, marginTop: 0, marginBottom: spacing.lg }}>1. Öğrenci Seç</h3>
 
         {selectedStudent ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.bg, padding: spacing.lg, borderRadius: borderRadius.md, flexWrap: 'wrap', gap: spacing.md }}>
@@ -186,14 +186,14 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
                 {selectedStudent.className}-{selectedStudent.section} | No: {selectedStudent.studentNumber}
               </p>
             </div>
-            <Button variant="ghost" onClick={() => { setSelectedStudent(null); setStudentLoans([]); }}>Degistir</Button>
+            <Button variant="ghost" onClick={() => { setSelectedStudent(null); setStudentLoans([]); }}>Değiştir</Button>
           </div>
         ) : (
           <div>
             <Input
               label=""
               type="text"
-              placeholder="Ogrenci adi, numarasi veya sinifi ile filtrele..."
+              placeholder="Öğrenci adı, numarası veya sınıfı ile filtrele..."
               value={studentSearch}
               onChange={(e) => setStudentSearch(e.target.value)}
             />
@@ -226,7 +226,7 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
                   </Badge>
                 </button>
               )) : (
-                <p style={{ color: colors.gray, fontSize: '13px', padding: spacing.md, margin: 0 }}>Ogrenci bulunamadi</p>
+                <p style={{ color: colors.gray, fontSize: '13px', padding: spacing.md, margin: 0 }}>Öğrenci bulunamadı</p>
               )}
             </div>
           </div>
@@ -239,7 +239,7 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
           {studentLoans.length > 0 && (
             <Card style={{ marginBottom: spacing.xl, padding: spacing.xl }}>
               <h3 style={{ color: colors.white, marginTop: 0, marginBottom: spacing.lg }}>
-                Aktif Oduncler ({studentLoans.length})
+                Aktif Ödünçler ({studentLoans.length})
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
                 {studentLoans.map((loan) => {
@@ -259,9 +259,9 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
                       <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
                         <div style={{ textAlign: 'right' }}>
                           <p style={{ color: isOverdue ? colors.error : colors.gray, fontSize: '12px', margin: 0 }}>
-                            Iade: {new Date(loan.dueDate).toLocaleDateString('tr-TR')}
+                            İade: {new Date(loan.dueDate).toLocaleDateString('tr-TR')}
                           </p>
-                          {isOverdue && <Badge variant="danger">Gecikmis</Badge>}
+                          {isOverdue && <Badge variant="danger">Gecikmiş</Badge>}
                         </div>
                         <Button
                           size="sm"
@@ -269,7 +269,7 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
                           onClick={() => handleReturn(loan.id)}
                           disabled={returning === loan.id}
                         >
-                          {returning === loan.id ? '...' : 'Iade Et'}
+                          {returning === loan.id ? '...' : 'İade Et'}
                         </Button>
                       </div>
                     </div>
@@ -281,11 +281,11 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
 
           {/* Step 2: Book Selection */}
           <Card style={{ padding: spacing.xl }}>
-            <h3 style={{ color: colors.white, marginTop: 0, marginBottom: spacing.lg }}>2. Kitap Sec ve Odunc Ver</h3>
+            <h3 style={{ color: colors.white, marginTop: 0, marginBottom: spacing.lg }}>2. Kitap Seç ve Ödünç Ver</h3>
             <Input
               label=""
               type="text"
-              placeholder="Kitap adi, yazar veya ISBN ile arayiniz..."
+              placeholder="Kitap adı, yazar veya ISBN ile arayınız..."
               value={bookSearch}
               onChange={(e) => setBookSearch(e.target.value)}
             />
@@ -310,7 +310,7 @@ export function AdminBorrowOnBehalf({ userInfo, selectedSchoolId, getToken }: Ad
                         onClick={() => handleBorrow(book.id)}
                         disabled={book.available <= 0 || borrowing}
                       >
-                        {borrowing ? '...' : 'Odunc Ver'}
+                        {borrowing ? '...' : 'Ödünç Ver'}
                       </Button>
                     </div>
                   </div>

@@ -72,7 +72,7 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
     setSaving(true);
     try {
       const token = await getToken();
-      if (!token) { toast.error('Oturum hatasi'); return; }
+      if (!token) { toast.error('Oturum hatası'); return; }
       const headers = getJsonHeaders(token, selectedSchoolId, userInfo?.role);
       const url = editingStudent
         ? `${process.env.NEXT_PUBLIC_API_URL}/api/users/passive/${editingStudent.id}`
@@ -83,7 +83,7 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
         body: JSON.stringify(formData),
       });
       if (res.ok) {
-        toast.success(editingStudent ? 'Ogrenci guncellendi' : 'Ogrenci eklendi');
+        toast.success(editingStudent ? 'Öğrenci güncellendi' : 'Öğrenci eklendi');
         resetForm();
         await fetchStudents();
       } else {
@@ -91,7 +91,7 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
         toast.error(error.message || 'Bir hata olustu');
       }
     } catch {
-      toast.error('Bir hata olustu');
+      toast.error('Bir hata oluştu');
     } finally {
       setSaving(false);
     }
@@ -101,20 +101,20 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
     if (!deleteConfirm) return;
     try {
       const token = await getToken();
-      if (!token) { toast.error('Oturum hatasi'); return; }
+      if (!token) { toast.error('Oturum hatası'); return; }
       const headers = getHeaders(token, selectedSchoolId, userInfo?.role);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/passive/${deleteConfirm.id}`, {
         method: 'DELETE', headers,
       });
       if (res.ok) {
         setStudents(students.filter(s => s.id !== deleteConfirm.id));
-        toast.success('Ogrenci silindi');
+        toast.success('Öğrenci silindi');
       } else {
         const error = await res.json();
         toast.error(error.message || 'Silinemedi');
       }
     } catch {
-      toast.error('Bir hata olustu');
+      toast.error('Bir hata oluştu');
     } finally {
       setDeleteConfirm(null);
     }
@@ -126,7 +126,7 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
     setCsvImporting(true);
     try {
       const token = await getToken();
-      if (!token) { toast.error('Oturum hatasi'); return; }
+      if (!token) { toast.error('Oturum hatası'); return; }
       const text = await file.text();
       const headers = getJsonHeaders(token, selectedSchoolId, userInfo?.role);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/passive/import-csv`, {
@@ -134,17 +134,17 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
       });
       if (res.ok) {
         const result = await res.json();
-        toast.success(`${result.success} ogrenci eklendi${result.failed > 0 ? `, ${result.failed} eklenemedi` : ''}`);
+        toast.success(`${result.success} öğrenci eklendi${result.failed > 0 ? `, ${result.failed} eklenemedi` : ''}`);
         if (result.errors && result.errors.length > 0) {
           result.errors.slice(0, 3).forEach((err: string) => toast.error(err));
         }
         await fetchStudents();
       } else {
         const error = await res.json();
-        toast.error(error.message || 'CSV import basarisiz');
+        toast.error(error.message || 'CSV içeri aktarma başarısız');
       }
     } catch {
-      toast.error('Bir hata olustu');
+      toast.error('Bir hata oluştu');
     } finally {
       setCsvImporting(false);
       e.target.value = '';
@@ -185,7 +185,7 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: spacing['2xl'] }}>
-        <p style={{ color: colors.gray }}>Yukleniyor...</p>
+        <p style={{ color: colors.gray }}>Yükleniyor...</p>
       </div>
     );
   }
@@ -193,7 +193,7 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xl, flexWrap: 'wrap', gap: spacing.md }}>
-        <h2 style={{ color: colors.white, fontSize: '24px', margin: 0 }}>Pasif Ogrenci Yonetimi</h2>
+        <h2 style={{ color: colors.white, fontSize: '24px', margin: 0 }}>Pasif Öğrenci Yönetimi</h2>
         <div style={{ display: 'flex', gap: spacing.md, flexWrap: 'wrap' }}>
           <label style={{
             display: 'inline-flex', alignItems: 'center', gap: spacing.sm,
@@ -203,10 +203,10 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
             opacity: csvImporting ? 0.7 : 1,
           }}>
             <input type="file" accept=".csv" onChange={handleCSVImport} disabled={csvImporting} style={{ display: 'none' }} />
-            {csvImporting ? 'Iceri Aktariliyor...' : 'CSV Iceri Aktar'}
+            {csvImporting ? 'İçeri Aktarılıyor...' : 'CSV İçeri Aktar'}
           </label>
-          <Button variant="outline" onClick={handleDownloadTemplate}>Sablon Indir</Button>
-          <Button onClick={() => { resetForm(); setShowForm(true); }}>+ Yeni Ogrenci Ekle</Button>
+          <Button variant="outline" onClick={handleDownloadTemplate}>Şablon İndir</Button>
+          <Button onClick={() => { resetForm(); setShowForm(true); }}>+ Yeni Öğrenci Ekle</Button>
         </div>
       </div>
 
@@ -214,18 +214,18 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
       {showForm && (
         <Card style={{ marginBottom: spacing.xl, padding: spacing.xl }}>
           <h3 style={{ color: colors.white, marginBottom: spacing.lg, marginTop: 0 }}>
-            {editingStudent ? 'Ogrenci Duzenle' : 'Yeni Pasif Ogrenci Ekle'}
+            {editingStudent ? 'Öğrenci Düzenle' : 'Yeni Pasif Öğrenci Ekle'}
           </h3>
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.lg, marginBottom: spacing.lg }}>
               <Input label="Ad Soyad *" type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
-              <Input label="Sinif *" type="text" value={formData.className} onChange={(e) => setFormData({ ...formData, className: e.target.value })} placeholder="9, 10, 11..." required />
-              <Input label="Sube *" type="text" value={formData.section} onChange={(e) => setFormData({ ...formData, section: e.target.value })} placeholder="A, B, C..." required />
-              <Input label="Okul Numarasi *" type="text" value={formData.studentNumber} onChange={(e) => setFormData({ ...formData, studentNumber: e.target.value })} placeholder="1001" required />
+              <Input label="Sınıf *" type="text" value={formData.className} onChange={(e) => setFormData({ ...formData, className: e.target.value })} placeholder="9, 10, 11..." required />
+              <Input label="Şube *" type="text" value={formData.section} onChange={(e) => setFormData({ ...formData, section: e.target.value })} placeholder="A, B, C..." required />
+              <Input label="Okul Numarası *" type="text" value={formData.studentNumber} onChange={(e) => setFormData({ ...formData, studentNumber: e.target.value })} placeholder="1001" required />
             </div>
             <div style={{ display: 'flex', gap: spacing.md }}>
-              <Button type="submit" disabled={saving}>{saving ? 'Kaydediliyor...' : (editingStudent ? 'Guncelle' : 'Kaydet')}</Button>
-              <Button type="button" variant="ghost" onClick={resetForm}>Iptal</Button>
+              <Button type="submit" disabled={saving}>{saving ? 'Kaydediliyor...' : (editingStudent ? 'Güncelle' : 'Kaydet')}</Button>
+              <Button type="button" variant="ghost" onClick={resetForm}>İptal</Button>
             </div>
           </form>
         </Card>
@@ -234,8 +234,8 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
       {/* Info Card */}
       <Card style={{ marginBottom: spacing.lg, padding: spacing.md, backgroundColor: `${colors.primary}15`, borderColor: colors.primary }}>
         <p style={{ color: colors.gray, margin: 0, fontSize: '13px' }}>
-          Pasif ogrenciler sisteme kayit olmamis ogrencilerdir. Onlarin adina kitap odunc verme/iade islemi yapabilirsiniz.
-          Ogrenci ileride sisteme kayit olursa, okul numarasi ile gecmis kayitlarini devralir.
+          Pasif öğrenciler sisteme kayıt olmamış öğrencilerdir. Onların adına kitap ödünç verme/iade işlemi yapabilirsiniz.
+          Öğrenci ileride sisteme kayıt olursa, okul numarası ile geçmiş kayıtlarını devralır.
         </p>
       </Card>
 
@@ -245,7 +245,7 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
           <Input
             label=""
             type="text"
-            placeholder="Ogrenci adi, sinifi, subesi veya numarasi ile filtrele..."
+            placeholder="Öğrenci adı, sınıfı, şubesi veya numarası ile filtrele..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -257,24 +257,24 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
         <div style={{ overflowX: 'auto' }}>
           {students.length === 0 ? (
             <div style={{ textAlign: 'center', padding: spacing['2xl'] }}>
-              <p style={{ color: colors.gray, fontSize: '16px' }}>Henuz pasif ogrenci eklenmemis</p>
-              <Button onClick={() => { resetForm(); setShowForm(true); }} style={{ marginTop: spacing.md }}>+ Ilk Ogrenciyi Ekle</Button>
+              <p style={{ color: colors.gray, fontSize: '16px' }}>Henüz pasif öğrenci eklenmemiş</p>
+              <Button onClick={() => { resetForm(); setShowForm(true); }} style={{ marginTop: spacing.md }}>+ İlk Öğrenciyi Ekle</Button>
             </div>
           ) : filteredStudents.length === 0 ? (
             <div style={{ textAlign: 'center', padding: spacing['2xl'] }}>
-              <p style={{ color: colors.gray, fontSize: '14px' }}>Aramayla eslesen ogrenci bulunamadi</p>
+              <p style={{ color: colors.gray, fontSize: '14px' }}>Aramayla eşleşen öğrenci bulunamadı</p>
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: colors.bg }}>
                   <th style={{ padding: spacing.lg, textAlign: 'left', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Ad Soyad</th>
-                  <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Sinif</th>
-                  <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Sube</th>
+                  <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Sınıf</th>
+                  <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Şube</th>
                   <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Numara</th>
-                  <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Aktif Odunc</th>
+                  <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Aktif Ödünç</th>
                   <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Eklenme</th>
-                  <th style={{ padding: spacing.lg, textAlign: 'right', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Islemler</th>
+                  <th style={{ padding: spacing.lg, textAlign: 'right', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>İşlemler</th>
                 </tr>
               </thead>
               <tbody>
@@ -295,7 +295,7 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
                     <td style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontSize: '12px' }}>{formatDate(student.createdAt)}</td>
                     <td style={{ padding: spacing.lg, textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: spacing.sm, justifyContent: 'flex-end' }}>
-                        <Button size="sm" onClick={() => handleEdit(student)}>Duzenle</Button>
+                        <Button size="sm" onClick={() => handleEdit(student)}>Düzenle</Button>
                         <Button size="sm" variant="danger" onClick={() => setDeleteConfirm({ id: student.id, name: student.name })}>Sil</Button>
                       </div>
                     </td>
@@ -312,10 +312,10 @@ export function AdminPassiveStudents({ userInfo, selectedSchoolId, getToken }: A
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={handleDeleteConfirm}
-        title="Ogrenciyi Sil"
-        message={`"${deleteConfirm?.name}" ogrencisini silmek istediginize emin misiniz? Aktif oduncu varsa silinemez.`}
+        title="Öğrenciyi Sil"
+        message={`"${deleteConfirm?.name}" öğrencisini silmek istediğinize emin misiniz? Aktif ödüncü varsa silinemez.`}
         confirmText="Sil"
-        cancelText="Iptal"
+        cancelText="İptal"
         variant="danger"
       />
     </div>

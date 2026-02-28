@@ -24,7 +24,7 @@ export interface UserProfile {
     slug: string;
     logo: string | null;
   } | null;
-  // Ogrenci bilgileri
+  // Öğrenci bilgileri
   className: string | null;
   section: string | null;
   studentNumber: string | null;
@@ -245,8 +245,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile.role === 'MEMBER' &&
     !profile.schoolId;
 
-  // User needs onboarding if they are authenticated but haven't completed setup
-  const needsOnboarding = needsSchoolSelection;
+  // User needs onboarding if Firebase user exists but no DB profile
+  const needsOnboarding = !!user && !profile && !profileLoading;
 
   // User is pending approval
   const isPendingApproval =

@@ -64,7 +64,7 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
     setTeacherCodeSaving(true);
     try {
       const token = await getToken();
-      if (!token) { toast.error('Oturum hatasi'); return; }
+      if (!token) { toast.error('Oturum hatası'); return; }
       const headers = getJsonHeaders(token, selectedSchoolId, userInfo?.role);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schools/my/teacher-code`, {
         method: 'PUT', headers, body: JSON.stringify({ teacherCode: teacherCodeInput.trim() || null }),
@@ -73,12 +73,12 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
         const data = await res.json();
         setTeacherCode(data.teacherCode);
         setTeacherCodeInput(data.teacherCode || '');
-        toast.success(data.teacherCode ? 'Ogretmen kodu kaydedildi' : 'Ogretmen kodu kaldirildi');
+        toast.success(data.teacherCode ? 'Öğretmen kodu kaydedildi' : 'Öğretmen kodu kaldırıldı');
       } else {
         const error = await res.json();
-        toast.error(error.message || 'Kaydetme basarisiz');
+        toast.error(error.message || 'Kaydetme başarısız');
       }
-    } catch { toast.error('Bir hata olustu'); }
+    } catch { toast.error('Bir hata oluştu'); }
     finally { setTeacherCodeSaving(false); }
   };
 
@@ -87,7 +87,7 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
     setTeacherCodeSaving(true);
     try {
       const token = await getToken();
-      if (!token) { toast.error('Oturum hatasi'); return; }
+      if (!token) { toast.error('Oturum hatası'); return; }
       const headers = getJsonHeaders(token, selectedSchoolId, userInfo?.role);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schools/my/teacher-code`, {
         method: 'PUT', headers, body: JSON.stringify({ teacherCode: null }),
@@ -95,9 +95,9 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
       if (res.ok) {
         setTeacherCode(null);
         setTeacherCodeInput('');
-        toast.success('Ogretmen kodu kaldirildi');
-      } else { toast.error('Islem basarisiz'); }
-    } catch { toast.error('Bir hata olustu'); }
+        toast.success('Öğretmen kodu kaldırıldı');
+      } else { toast.error('İşlem başarısız'); }
+    } catch { toast.error('Bir hata oluştu'); }
     finally { setTeacherCodeSaving(false); }
   };
 
@@ -128,14 +128,14 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
       <h2 style={{ color: colors.white, fontSize: '24px', marginBottom: spacing.xl }}>⚙️ Kütüphane Ayarları</h2>
       {/* Öğretmen Kayıt Kodu */}
       <Card style={{ marginBottom: spacing.xl }}>
-        <Card.Header><Card.Title>Ogretmen Kayit Kodu</Card.Title></Card.Header>
+        <Card.Header><Card.Title>Öğretmen Kayıt Kodu</Card.Title></Card.Header>
         <Card.Content>
           {teacherCodeLoading ? (
-            <p style={{ color: colors.gray }}>Yukleniyor...</p>
+            <p style={{ color: colors.gray }}>Yükleniyor...</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
               <p style={{ color: colors.gray, fontSize: '13px', margin: 0 }}>
-                Ogretmenlerin kayit olabilmesi icin bir kod belirleyin. Bu kodu ogretmenlerle paylasarak kayit olmalarini saglayabilirsiniz.
+                Öğretmenlerin kayıt olabilmesi için bir kod belirleyin. Bu kodu öğretmenlerle paylaşarak kayıt olmalarını sağlayabilirsiniz.
               </p>
               <div className="teacher-code-input-row" style={{ display: 'flex', gap: spacing.sm, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                 <div style={{ flex: '1 1 200px', minWidth: 0 }}>
@@ -143,7 +143,7 @@ export function AdminSettings({ schoolSettings, setSchoolSettings, userInfo, sel
                   <Input
                     value={teacherCodeInput}
                     onChange={(e) => setTeacherCodeInput(e.target.value.toUpperCase())}
-                    placeholder="Ornek: OGRT2024"
+                    placeholder="Örnek: OGRT2024"
                     style={{ fontFamily: 'monospace', letterSpacing: '2px' }}
                   />
                 </div>

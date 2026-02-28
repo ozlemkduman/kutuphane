@@ -61,16 +61,16 @@ const NumberIcon = () => (
 // Error messages mapping
 const getErrorMessage = (errorCode: string): string => {
   const errorMessages: Record<string, string> = {
-    'auth/email-already-in-use': 'Bu e-posta adresi zaten kullaniliyor.',
-    'auth/invalid-email': 'Gecersiz e-posta adresi.',
-    'auth/weak-password': 'Sifre en az 6 karakter olmalidir.',
-    'auth/operation-not-allowed': 'E-posta/sifre ile kayit su an devre disi.',
-    'auth/network-request-failed': 'Internet baglantinizi kontrol edin.',
-    'auth/popup-closed-by-user': 'Google kayit penceresi kapatildi.',
-    'auth/too-many-requests': 'Cok fazla deneme yapildi. Lutfen daha sonra tekrar deneyin.',
+    'auth/email-already-in-use': 'Bu e-posta adresi zaten kullanılıyor.',
+    'auth/invalid-email': 'Geçersiz e-posta adresi.',
+    'auth/weak-password': 'Şifre en az 6 karakter olmalıdır.',
+    'auth/operation-not-allowed': 'E-posta/şifre ile kayıt şu an devre dışı.',
+    'auth/network-request-failed': 'İnternet bağlantınızı kontrol edin.',
+    'auth/popup-closed-by-user': 'Google kayıt penceresi kapatıldı.',
+    'auth/too-many-requests': 'Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin.',
   };
 
-  return errorMessages[errorCode] || 'Kayit yapilirken bir hata olustu. Lutfen tekrar deneyin.';
+  return errorMessages[errorCode] || 'Kayıt yapılırken bir hata oluştu. Lütfen tekrar deneyin.';
 };
 
 // Password strength checker
@@ -82,10 +82,10 @@ const getPasswordStrength = (password: string): { strength: number; label: strin
   if (/[0-9]/.test(password)) strength += 1;
   if (/[^A-Za-z0-9]/.test(password)) strength += 1;
 
-  if (strength <= 1) return { strength, label: 'Zayif', color: colors.error };
+  if (strength <= 1) return { strength, label: 'Zayıf', color: colors.error };
   if (strength <= 2) return { strength, label: 'Orta', color: colors.warning };
-  if (strength <= 3) return { strength, label: 'Iyi', color: colors.primaryLight };
-  return { strength, label: 'Guclu', color: colors.success };
+  if (strength <= 3) return { strength, label: 'İyi', color: colors.primaryLight };
+  return { strength, label: 'Güçlü', color: colors.success };
 };
 
 interface School {
@@ -172,7 +172,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
 
     if (!registerRes.ok) {
       const data = await registerRes.json().catch(() => ({}));
-      throw new Error(data.message || 'Kayit yapilamadi');
+      throw new Error(data.message || 'Kayıt yapılamadı');
     }
 
     return registerRes.json();
@@ -190,38 +190,38 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
     }
 
     if (password.length < 6) {
-      toast.error('Sifre en az 6 karakter olmalidir');
+      toast.error('Şifre en az 6 karakter olmalıdır');
       return false;
     }
 
     if (!selectedSchoolId) {
-      toast.error('Lutfen bir okul secin');
+      toast.error('Lütfen bir okul seçin');
       return false;
     }
 
     if (userType === 'teacher') {
       if (!teacherCode.trim()) {
-        toast.error('Ogretmen kodu zorunludur');
+        toast.error('Öğretmen kodu zorunludur');
         return false;
       }
     } else {
       if (!className.trim()) {
-        toast.error('Sinif bilgisi zorunludur');
+        toast.error('Sınıf bilgisi zorunludur');
         return false;
       }
 
       if (!section.trim()) {
-        toast.error('Sube bilgisi zorunludur');
+        toast.error('Şube bilgisi zorunludur');
         return false;
       }
 
       if (!studentNumber.trim()) {
-        toast.error('Okul numarasi zorunludur');
+        toast.error('Okul numarası zorunludur');
         return false;
       }
 
       if (!/^[0-9]+$/.test(studentNumber.trim())) {
-        toast.error('Okul numarasi sadece rakam icermelidir');
+        toast.error('Okul numarası sadece rakam içermelidir');
         return false;
       }
     }
@@ -278,7 +278,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
             }
           } else {
             // Yetim hesap degil - gercekten kullanilan bir e-posta
-            toast.error('Bu e-posta adresi zaten kayitli. Lutfen giris yapin veya farkli bir e-posta kullanin.');
+            toast.error('Bu e-posta adresi zaten kayıtlı. Lütfen giriş yapın veya farklı bir e-posta kullanın.');
             setLoading(false);
             return;
           }
@@ -291,7 +291,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
 
       try {
         await registerUser(token, name, email);
-        toast.success('Kayit basarili! Onay bekleniyor...');
+        toast.success('Kayıt başarılı! Onay bekleniyor...');
         router.push('/pending-approval');
       } catch (apiErr: any) {
         // API kayit hatasi - Firebase kullanicisini temizle (orphaned user olmasin)
@@ -302,7 +302,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
       if (err.code) {
         toast.error(getErrorMessage(err.code));
       } else {
-        toast.error(err.message || 'Kayit yapilirken bir hata olustu');
+        toast.error(err.message || 'Kayıt yapılırken bir hata oluştu');
       }
     } finally {
       setLoading(false);
@@ -311,23 +311,23 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
 
   const validateGoogleFields = (): boolean => {
     if (!selectedSchoolId) {
-      toast.error('Lutfen once bir okul secin');
+      toast.error('Lütfen önce bir okul seçin');
       return false;
     }
 
     if (userType === 'teacher') {
       if (!teacherCode.trim()) {
-        toast.error('Ogretmen kodu zorunludur');
+        toast.error('Öğretmen kodu zorunludur');
         return false;
       }
     } else {
       if (!className.trim() || !section.trim() || !studentNumber.trim()) {
-        toast.error('Lutfen tum ogrenci bilgilerini doldurun');
+        toast.error('Lütfen tüm öğrenci bilgilerini doldurun');
         return false;
       }
 
       if (!/^[0-9]+$/.test(studentNumber.trim())) {
-        toast.error('Okul numarasi sadece rakam icermelidir');
+        toast.error('Okul numarası sadece rakam içermelidir');
         return false;
       }
     }
@@ -347,19 +347,19 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
 
       await registerUser(
         token,
-        result.user.displayName || name || 'Isimsiz',
+        result.user.displayName || name || 'İsimsiz',
         result.user.email || ''
       );
 
-      toast.success('Kayit basarili! Onay bekleniyor...');
+      toast.success('Kayıt başarılı! Onay bekleniyor...');
       router.push('/pending-approval');
     } catch (err: any) {
       // API kayit hatasi - Firebase oturumunu kapat
       try { await auth.signOut(); } catch {}
       if (err.code === 'auth/popup-closed-by-user') {
-        toast.error('Google kayit penceresi kapatildi.');
+        toast.error('Google kayıt penceresi kapatıldı.');
       } else {
-        toast.error(err.message || 'Kayit yapilirken bir hata olustu');
+        toast.error(err.message || 'Kayıt yapılırken bir hata oluştu');
       }
     } finally {
       setLoading(false);
@@ -409,7 +409,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
           WebkitTextFillColor: 'transparent',
         }}
       >
-        Kayit Ol
+        Kayıt Ol
       </h1>
 
       {/* Register Form */}
@@ -419,7 +419,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
           label="Ad Soyad"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Ahmet Yilmaz"
+          placeholder="Ahmet Yılmaz"
           leftIcon={<UserIcon />}
           required
           autoComplete="name"
@@ -438,7 +438,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
 
         <Input
           type="password"
-          label="Sifre"
+          label="Şifre"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="En az 6 karakter"
@@ -477,12 +477,12 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
                 color: passwordStrength.color,
               }}
             >
-              Sifre gucu: {passwordStrength.label}
+              Şifre gücü: {passwordStrength.label}
             </span>
           </div>
         )}
 
-        {/* Okul ve Ogrenci Bilgileri */}
+        {/* Okul ve Öğrenci Bilgileri */}
         <div
           style={{
             marginTop: spacing.lg,
@@ -492,7 +492,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
           }}
         >
           <p style={{ color: colors.gray, fontSize: '14px', marginBottom: spacing.md }}>
-            Okul ve Ogrenci Bilgileri
+            Okul ve Öğrenci Bilgileri
           </p>
         </div>
 
@@ -545,7 +545,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
               }}
             >
               <option value="">
-                {schoolsLoading ? 'Yukleniyor...' : 'Okul secin'}
+                {schoolsLoading ? 'Yükleniyor...' : 'Okul seçin'}
               </option>
               {schools.map((school) => (
                 <option key={school.id} value={school.id}>
@@ -562,7 +562,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
             {/* Öğrenci / Öğretmen Toggle */}
             <div style={{ marginBottom: spacing.lg }}>
               <label style={{ display: 'block', color: colors.gray, fontSize: '14px', marginBottom: spacing.sm, fontWeight: 500 }}>
-                Kayit Turu *
+                Kayıt Türü *
               </label>
               <div style={{ display: 'flex', gap: '0', borderRadius: borderRadius.md, overflow: 'hidden', border: `1px solid ${colors.border}` }}>
                 <button
@@ -580,7 +580,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
                     transition: `all ${transitions.fast}`,
                   }}
                 >
-                  Ogrenci
+                  Öğrenci
                 </button>
                 <button
                   type="button"
@@ -598,7 +598,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
                     transition: `all ${transitions.fast}`,
                   }}
                 >
-                  Ogretmen
+                  Öğretmen
                 </button>
               </div>
             </div>
@@ -607,15 +607,15 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
               <>
                 <Input
                   type="text"
-                  label="Ogretmen Kodu *"
+                  label="Öğretmen Kodu *"
                   value={teacherCode}
                   onChange={(e) => setTeacherCode(e.target.value.toUpperCase())}
-                  placeholder="Okul yoneticinizden alin"
+                  placeholder="Okul yöneticinizden alın"
                   leftIcon={<LockIcon />}
                   required
                 />
                 <p style={{ color: colors.gray, fontSize: '12px', marginTop: `-${spacing.sm}`, marginBottom: spacing.md }}>
-                  Ogretmen kayit kodunu okul yoneticinizden temin edebilirsiniz.
+                  Öğretmen kayıt kodunu okul yöneticinizden temin edebilirsiniz.
                 </p>
               </>
             ) : (
@@ -624,7 +624,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
                   <div style={{ flex: '1 1 140px', minWidth: 0 }}>
                     <Input
                       type="text"
-                      label="Sinif *"
+                      label="Sınıf *"
                       value={className}
                       onChange={(e) => setClassName(e.target.value)}
                       placeholder="9, 10, 11..."
@@ -635,7 +635,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
                   <div style={{ flex: '1 1 140px', minWidth: 0 }}>
                     <Input
                       type="text"
-                      label="Sube *"
+                      label="Şube *"
                       value={section}
                       onChange={(e) => setSection(e.target.value)}
                       placeholder="A, B, C..."
@@ -647,7 +647,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
 
                 <Input
                   type="text"
-                  label="Okul Numarasi *"
+                  label="Okul Numarası *"
                   value={studentNumber}
                   onChange={(e) => setStudentNumber(e.target.value)}
                   placeholder="12345"
@@ -670,7 +670,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
             marginTop: spacing.md,
           }}
         >
-          Kayit Ol
+          Kayıt Ol
         </Button>
       </form>
 
@@ -719,7 +719,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
           backgroundColor: `${colors.warning}15`,
           borderRadius: borderRadius.sm,
         }}>
-          Google ile kayit olmak icin once yukaridaki okul ve ogrenci bilgilerini doldurun.
+          Google ile kayıt olmak için önce yukarıdaki okul ve öğrenci bilgilerini doldurun.
         </p>
       )}
 
@@ -757,10 +757,10 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
             e.currentTarget.style.borderColor = colors.border;
           }
         }}
-        aria-label="Google ile kayit ol"
+        aria-label="Google ile kayıt ol"
       >
         <GoogleIcon />
-        Google ile Kayit Ol
+        Google ile Kayıt Ol
       </button>
 
       {/* Info about approval process */}
@@ -775,7 +775,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
           borderRadius: borderRadius.sm,
         }}
       >
-        Kayit sonrasi okul yoneticiniz bilgilerinizi onaylayacaktir.
+        Kayıt sonrası okul yöneticiniz bilgilerinizi onaylayacaktır.
       </p>
 
       {/* Terms Notice */}
@@ -788,21 +788,21 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
           lineHeight: 1.5,
         }}
       >
-        Kayit olarak{' '}
+        Kayıt olarak{' '}
         <Link
           href="/terms"
           style={{ color: colors.gray, textDecoration: 'underline' }}
         >
-          Kullanim Kosullari
+          Kullanım Koşulları
         </Link>
         {' '}ve{' '}
         <Link
           href="/privacy"
           style={{ color: colors.gray, textDecoration: 'underline' }}
         >
-          Gizlilik Politikasi
+          Gizlilik Politikası
         </Link>
-        &apos;ni kabul etmis olursunuz.
+        &apos;nı kabul etmiş olursunuz.
       </p>
 
       {/* Login Link */}
@@ -814,7 +814,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
           fontSize: '15px',
         }}
       >
-        Zaten hesabin var mi?{' '}
+        Zaten hesabın var mı?{' '}
         <Link
           href="/login"
           style={{
@@ -830,7 +830,7 @@ export function RegisterForm({ school: preselectedSchool, schoolSlug }: Register
             e.currentTarget.style.color = colors.primaryLight;
           }}
         >
-          Giris Yap
+          Giriş Yap
         </Link>
       </p>
     </div>

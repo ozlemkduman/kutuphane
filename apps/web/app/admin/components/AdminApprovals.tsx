@@ -120,11 +120,11 @@ export function AdminApprovals({ pendingUsers, setPendingUsers, userInfo, select
                         onChange={(e) => { if (e.target.checked) { setSelectedUsers(pendingUsers.map((u) => u.id)); } else { setSelectedUsers([]); } }}
                         style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: colors.primary }} aria-label="Tümünü seç" />
                     </th>
-                    <th style={{ padding: spacing.lg, textAlign: 'left', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Kullanici</th>
-                    <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Sinif</th>
+                    <th style={{ padding: spacing.lg, textAlign: 'left', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Kullanıcı</th>
+                    <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Sınıf</th>
                     <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Okul No</th>
-                    <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Basvuru Tarihi</th>
-                    <th style={{ padding: spacing.lg, textAlign: 'right', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Islemler</th>
+                    <th style={{ padding: spacing.lg, textAlign: 'center', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>Başvuru Tarihi</th>
+                    <th style={{ padding: spacing.lg, textAlign: 'right', color: colors.gray, fontWeight: 600, fontSize: '13px' }}>İşlemler</th>
                   </tr>
                 </thead>
                 <tbody>
