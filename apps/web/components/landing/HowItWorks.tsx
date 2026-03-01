@@ -109,7 +109,7 @@ export const HowItWorks = () => {
           <div
             style={{
               position: 'absolute',
-              top: '60px',
+              top: '24px',
               left: '15%',
               right: '15%',
               height: '0px',
