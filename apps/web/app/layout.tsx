@@ -3,8 +3,52 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Bir Kitap Aldım",
-  description: "Kitapları keşfet, ödünç al, oku.",
+  title: {
+    default: "Bir Kitap Aldım - Okul Kütüphane Yönetim Sistemi",
+    template: "%s | Bir Kitap Aldım",
+  },
+  description:
+    "Okul kütüphanelerini dijitalleştiren platform. Kitapları keşfet, ödünç al, oku. Öğrenciler ve öğretmenler için kolay kütüphane yönetimi.",
+  keywords: [
+    "kütüphane",
+    "okul kütüphanesi",
+    "kitap",
+    "ödünç al",
+    "dijital kütüphane",
+    "kütüphane yönetim sistemi",
+    "bir kitap aldım",
+  ],
+  authors: [{ name: "Bir Kitap Aldım" }],
+  metadataBase: new URL("https://birkitapaldim.com"),
+  openGraph: {
+    title: "Bir Kitap Aldım - Okul Kütüphane Yönetim Sistemi",
+    description:
+      "Okul kütüphanelerini dijitalleştiren platform. Kitapları keşfet, ödünç al, oku.",
+    url: "https://birkitapaldim.com",
+    siteName: "Bir Kitap Aldım",
+    locale: "tr_TR",
+    type: "website",
+    images: [
+      {
+        url: "/logo-kitap.png",
+        width: 512,
+        height: 512,
+        alt: "Bir Kitap Aldım Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Bir Kitap Aldım - Okul Kütüphane Yönetim Sistemi",
+    description:
+      "Okul kütüphanelerini dijitalleştiren platform. Kitapları keşfet, ödünç al, oku.",
+    images: ["/logo-kitap.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({
