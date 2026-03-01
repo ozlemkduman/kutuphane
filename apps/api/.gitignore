@@ -1,6 +1,7 @@
 # Gizli dosyalar - asla GitHub'a yükleme!
 firebase-admin-key.json
 .env
+.env.staging
 
 # Node
 node_modules/

@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "kitaphane-2e37c"
+  },
+  "targets": {
+    "kitaphane-2e37c": {
+      "hosting": {
+        "production": ["kitaphane-2e37c"],
+        "staging": ["kitaphane-staging"]
+      }
+    }
   }
 }

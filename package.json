@@ -13,7 +13,9 @@
     "build": "npm run build --workspace=apps/api && npm run build --workspace=apps/web",
     "db:studio": "npm run studio --workspace=apps/api",
     "test": "npm run test --workspace=apps/api",
-    "test:cov": "npm run test:cov --workspace=apps/api"
+    "test:cov": "npm run test:cov --workspace=apps/api",
+    "deploy:staging": "bash deploy.sh staging",
+    "deploy:production": "bash deploy.sh production"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
