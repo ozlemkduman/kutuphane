@@ -112,8 +112,8 @@ export const HowItWorks = () => {
               top: '60px',
               left: '15%',
               right: '15%',
-              height: '2px',
-              background: `linear-gradient(90deg, ${colors.primary}, ${colors.primaryLight})`,
+              height: '0px',
+              borderTop: `2px dashed ${colors.primary}`,
               display: 'none',
             }}
             className="connection-line"
