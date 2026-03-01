@@ -21,6 +21,13 @@ if [ "$ENV" = "staging" ]; then
     done
   done
   cp -r .next/static deploy-public/_next/static
+  # Favicon, icon, apple-icon (body dosyalari gercek icerik)
+  [ -f .next/server/app/favicon.ico.body ] && cp .next/server/app/favicon.ico.body deploy-public/favicon.ico
+  [ -f .next/server/app/icon.png.body ] && cp .next/server/app/icon.png.body deploy-public/icon.png
+  [ -f .next/server/app/apple-icon.png.body ] && cp .next/server/app/apple-icon.png.body deploy-public/apple-icon.png
+  # Public klasorundeki dosyalar (manifest, ikonlar)
+  cp public/site.webmanifest deploy-public/ 2>/dev/null || true
+  cp public/icon-192.png public/icon-512.png public/apple-touch-icon.png public/logo-kitap.png deploy-public/ 2>/dev/null || true
   # 3. Firebase staging deploy
   firebase deploy --only hosting:staging
   cd ../..
@@ -43,6 +50,13 @@ elif [ "$ENV" = "production" ]; then
     done
   done
   cp -r .next/static deploy-public/_next/static
+  # Favicon, icon, apple-icon
+  [ -f .next/server/app/favicon.ico.body ] && cp .next/server/app/favicon.ico.body deploy-public/favicon.ico
+  [ -f .next/server/app/icon.png.body ] && cp .next/server/app/icon.png.body deploy-public/icon.png
+  [ -f .next/server/app/apple-icon.png.body ] && cp .next/server/app/apple-icon.png.body deploy-public/apple-icon.png
+  # Public klasorundeki dosyalar
+  cp public/site.webmanifest deploy-public/ 2>/dev/null || true
+  cp public/icon-192.png public/icon-512.png public/apple-touch-icon.png public/logo-kitap.png deploy-public/ 2>/dev/null || true
   # Firebase production deploy
   firebase deploy --only hosting:production
   cd ../..
