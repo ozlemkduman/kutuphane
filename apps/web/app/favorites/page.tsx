@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { BookCover } from '@/components/ui/BookCover';
 import { colors, borderRadius, spacing } from '@/lib/theme';
 import { useToast } from '@/components/ui/Toast';
 
@@ -22,7 +23,6 @@ interface Favorite {
     title: string;
     author: string;
     isbn: string;
-    coverImage: string | null;
     available: number;
     quantity: number;
     category: {
@@ -31,11 +31,6 @@ interface Favorite {
     } | null;
   };
 }
-
-const getCoverUrl = (isbn: string, coverImage: string | null) => {
-  if (coverImage) return coverImage;
-  return `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
-};
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
@@ -166,24 +161,13 @@ export default function FavoritesPage() {
                 onClick={() => router.push(`/books/${favorite.book.id}`)}
               >
                 <div style={{ display: 'flex', gap: spacing.md }}>
-                  {/* Kapak resmi */}
-                  <div style={{
-                    width: '80px',
-                    height: '120px',
-                    backgroundColor: colors.bgLight,
-                    borderRadius: borderRadius.md,
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                  }}>
-                    <img
-                      src={getCoverUrl(favorite.book.isbn, favorite.book.coverImage)}
-                      alt={favorite.book.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://via.placeholder.com/80x120/3d3830/d97706?text=${encodeURIComponent(favorite.book.title.substring(0, 8))}`;
-                      }}
-                    />
-                  </div>
+                  {/* Kapak */}
+                  <BookCover
+                    title={favorite.book.title}
+                    category={favorite.book.category}
+                    width={80}
+                    height={120}
+                  />
 
                   {/* Kitap bilgileri */}
                   <div style={{ flex: 1, minWidth: 0 }}>

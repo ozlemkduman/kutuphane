@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { colors, borderRadius, shadows, spacing, transitions } from '@/lib/theme';
 import { Button } from '@/components/ui/Button';
+import { BookCover } from '@/components/ui/BookCover';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 interface Book {
   id: string;
   title: string;
   author: string;
-  coverImage?: string;
   category?: {
     name: string;
     icon: string;
@@ -141,32 +141,12 @@ export const PopularBooks = () => {
                       position: 'relative',
                     }}
                   >
-                    {book.coverImage ? (
-                      <img
-                        src={book.coverImage}
-                        alt={book.title}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: '100px',
-                          height: '140px',
-                          background: `linear-gradient(135deg, ${colors.primary}40, ${colors.primaryLight}40)`,
-                          borderRadius: borderRadius.md,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '40px',
-                        }}
-                      >
-                        📚
-                      </div>
-                    )}
+                    <BookCover
+                      title={book.title}
+                      category={book.category}
+                      height={200}
+                      style={{ width: '100%', borderRadius: 0 }}
+                    />
 
                     {/* Ranking Badge */}
                     {index < 3 && (

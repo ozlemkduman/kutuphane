@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { BookCover } from '@/components/ui/BookCover';
 import { colors, borderRadius, shadows, spacing } from '@/lib/theme';
 import { useToast } from '@/components/ui/Toast';
 
@@ -21,17 +22,10 @@ interface Book {
   author: string;
   isbn: string;
   description: string | null;
-  coverImage: string | null;
   available: number;
   quantity: number;
   createdAt: string;
 }
-
-// ISBN'den kapak resmi URL'i oluştur (Open Library API)
-const getCoverUrl = (isbn: string, coverImage: string | null) => {
-  if (coverImage) return coverImage;
-  return `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
-};
 
 export default function BookDetailClient() {
   const [book, setBook] = useState<Book | null>(null);
@@ -405,31 +399,13 @@ export default function BookDetailClient() {
 
         <Card style={{ padding: spacing['2xl'] }}>
           <div style={{ display: 'flex', gap: spacing['2xl'], flexWrap: 'wrap' }}>
-            {/* Kapak Resmi */}
-            <div style={{
-              width: '220px',
-              height: '320px',
-              backgroundColor: colors.bgLight,
-              borderRadius: borderRadius.lg,
-              overflow: 'hidden',
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <img
-                src={getCoverUrl(book.isbn, book.coverImage)}
-                alt={book.title}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                }}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = `https://via.placeholder.com/220x320/3d3830/d97706?text=${encodeURIComponent(book.title.substring(0, 15))}`;
-                }}
-              />
-            </div>
+            {/* Kapak */}
+            <BookCover
+              title={book.title}
+              width={220}
+              height={320}
+              style={{ borderRadius: borderRadius.lg, flexShrink: 0 }}
+            />
 
             {/* Kitap Bilgileri */}
             <div style={{ flex: 1, minWidth: '280px' }}>

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { BookCover } from '@/components/ui/BookCover';
 import { colors, borderRadius, spacing } from '@/lib/theme';
 import { useToast } from '@/components/ui/Toast';
 
@@ -26,7 +27,6 @@ interface Book {
   title: string;
   author: string;
   isbn: string;
-  coverImage: string | null;
   category: Category | null;
 }
 
@@ -329,23 +329,7 @@ export default function MyLoansPage() {
                   <div style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                     {/* Kitap Kapağı */}
                     <Link href={`/books/${loan.book.id}`}>
-                      <div style={{
-                        width: '60px',
-                        height: '85px',
-                        backgroundColor: colors.bgLight,
-                        borderRadius: borderRadius.sm,
-                        overflow: 'hidden',
-                        flexShrink: 0,
-                      }}>
-                        <img
-                          src={loan.book.coverImage || `https://covers.openlibrary.org/b/isbn/${loan.book.isbn}-M.jpg`}
-                          alt={loan.book.title}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = `https://via.placeholder.com/60x85/3d3830/d97706?text=${encodeURIComponent(loan.book.title.substring(0, 10))}`;
-                          }}
-                        />
-                      </div>
+                      <BookCover title={loan.book.title} category={loan.book.category} width={60} height={85} />
                     </Link>
 
                     {/* Kitap Bilgileri */}

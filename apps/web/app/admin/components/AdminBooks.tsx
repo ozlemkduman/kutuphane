@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useToast } from '@/components/ui/Toast';
+import { BookCover } from '@/components/ui/BookCover';
 import { colors, borderRadius, spacing } from '@/lib/theme';
 import { getHeaders, getJsonHeaders } from './utils';
 import { Book, Category, UserInfo } from './types';
@@ -25,7 +26,7 @@ export function AdminBooks({ books, setBooks, categories, userInfo, selectedScho
   const [showForm, setShowForm] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
   const [formData, setFormData] = useState({
-    title: '', author: '', isbn: '', description: '', quantity: 1, categoryId: '', coverImage: '',
+    title: '', author: '', isbn: '', description: '', quantity: 1, categoryId: '',
   });
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
@@ -38,7 +39,7 @@ export function AdminBooks({ books, setBooks, categories, userInfo, selectedScho
   const resetForm = () => {
     setShowForm(false);
     setEditingBook(null);
-    setFormData({ title: '', author: '', isbn: '', description: '', quantity: 1, categoryId: '', coverImage: '' });
+    setFormData({ title: '', author: '', isbn: '', description: '', quantity: 1, categoryId: '' });
   };
 
   const handleEdit = (book: Book) => {
@@ -46,7 +47,7 @@ export function AdminBooks({ books, setBooks, categories, userInfo, selectedScho
     setFormData({
       title: book.title, author: book.author, isbn: book.isbn || '',
       description: book.description || '', quantity: book.quantity,
-      categoryId: book.categoryId || '', coverImage: book.coverImage || '',
+      categoryId: book.categoryId || '',
     });
     setShowForm(true);
   };
@@ -242,20 +243,6 @@ export function AdminBooks({ books, setBooks, categories, userInfo, selectedScho
                 style={{ width: '100%', padding: spacing.md, backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: borderRadius.md, color: colors.white, boxSizing: 'border-box', resize: 'vertical' }}
               />
             </div>
-            <div style={{ marginBottom: spacing.lg }}>
-              <div style={{ display: 'flex', gap: spacing.md, alignItems: 'flex-end' }}>
-                <div style={{ flex: 1 }}>
-                  <Input label="Kapak Resmi URL (opsiyonel)" type="url" value={formData.coverImage} onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })} placeholder="https://..." />
-                </div>
-                {formData.coverImage && (
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <img src={formData.coverImage} alt="Önizleme" style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: borderRadius.sm }} />
-                    <button type="button" onClick={() => setFormData({ ...formData, coverImage: '' })}
-                      style={{ position: 'absolute', top: '-8px', right: '-8px', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: colors.error, color: 'white', border: 'none', cursor: 'pointer', fontSize: '12px' }}>×</button>
-                  </div>
-                )}
-              </div>
-            </div>
             <div style={{ display: 'flex', gap: spacing.md }}>
               <Button type="submit" disabled={saving}>{saving ? 'Kaydediliyor...' : (editingBook ? 'Güncelle' : 'Kaydet')}</Button>
               <Button type="button" variant="ghost" onClick={resetForm}>İptal</Button>
@@ -306,7 +293,7 @@ export function AdminBooks({ books, setBooks, categories, userInfo, selectedScho
                   </td>
                   <td style={{ padding: spacing.lg }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
-                      {book.coverImage && <img src={book.coverImage} alt="" style={{ width: '40px', height: '56px', objectFit: 'cover', borderRadius: borderRadius.sm }} />}
+                      <BookCover title={book.title} category={book.category} width={40} height={56} />
                       <div>
                         <p style={{ color: colors.white, fontWeight: 600, fontSize: '14px', margin: 0 }}>{book.title}</p>
                         <p style={{ color: colors.gray, fontSize: '12px', margin: 0 }}>{book.author}</p>

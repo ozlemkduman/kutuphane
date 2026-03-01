@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { BookCover } from '@/components/ui/BookCover';
 import { colors, borderRadius, shadows, spacing, transitions } from '@/lib/theme';
 import { useToast } from '@/components/ui/Toast';
 
@@ -21,7 +22,6 @@ interface Book {
   author: string;
   isbn: string;
   description: string | null;
-  coverImage: string | null;
   available: number;
   quantity: number;
   categoryId: string | null;
@@ -49,12 +49,6 @@ interface SearchResult {
 
 type SortOption = 'title' | 'author' | 'createdAt' | 'popular';
 type AvailabilityFilter = 'all' | 'available' | 'unavailable';
-
-// ISBN'den kapak resmi URL'i oluştur (Open Library API)
-const getCoverUrl = (isbn: string, coverImage: string | null) => {
-  if (coverImage) return coverImage;
-  return `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
-};
 
 export default function BooksPage() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -473,23 +467,12 @@ export default function BooksPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(250px, 100%), 1fr))', gap: spacing.xl }}>
               {books.map((book) => (
                 <Card key={book.id} hoverable style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{
-                    height: '160px',
-                    backgroundColor: colors.bgLight,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden',
-                  }}>
-                    <img
-                      src={getCoverUrl(book.isbn, book.coverImage)}
-                      alt={book.title}
-                      style={{ height: '100%', width: 'auto', objectFit: 'contain' }}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://via.placeholder.com/150x200/3d3830/d97706?text=${encodeURIComponent(book.title.substring(0, 10))}`;
-                      }}
-                    />
-                  </div>
+                  <BookCover
+                    title={book.title}
+                    category={book.category}
+                    height={160}
+                    style={{ width: '100%', borderRadius: 0 }}
+                  />
                   <Card.Content style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 600, marginBottom: spacing.xs, color: colors.white, lineHeight: 1.3 }}>
                       {book.title}
