@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import Link from '@/components/ui/AppLink';
 import { colors, borderRadius, shadows, spacing, transitions } from '@/lib/theme';
 import { Button } from '@/components/ui/Button';
 import { BookCover } from '@/components/ui/BookCover';

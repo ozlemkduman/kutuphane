@@ -10,7 +10,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import Link from '@/components/ui/AppLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -160,10 +160,10 @@ export default function LoginPage() {
     }
   };
 
-  // Show loading while checking auth state or redirecting
+  // If user is logged in and being redirected, show a brief loading indicator
   const isRedirecting = !authLoading && user && (profile || (!profile && !profileLoading));
 
-  if (authLoading || isRedirecting) {
+  if (isRedirecting) {
     return (
       <div
         style={{
@@ -187,7 +187,7 @@ export default function LoginPage() {
           }}
         />
         <p style={{ color: colors.gray, fontSize: '14px' }}>
-          {isRedirecting ? 'Yönlendiriliyor...' : 'Yükleniyor...'}
+          Yönlendiriliyor...
         </p>
         <style>{`
           @keyframes spin {

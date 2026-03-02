@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/ui/AppLink';
 import { colors, spacing, borderRadius, transitions } from '@/lib/theme';
 
 interface FooterLink {

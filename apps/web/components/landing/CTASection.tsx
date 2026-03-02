@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/ui/AppLink';
 import { colors, borderRadius, shadows, spacing } from '@/lib/theme';
 import { Button } from '@/components/ui/Button';
 
